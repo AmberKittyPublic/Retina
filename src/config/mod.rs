@@ -196,15 +196,18 @@ pub struct DiscordSettings {
 pub struct WebSettings {
     #[serde(default = "default_port")]
     pub port: u16,
+    #[serde(default = "default_host")]
+    pub host: String,
 }
 
 impl Default for WebSettings {
     fn default() -> Self {
-        WebSettings { port: 3000 }
+        WebSettings { port: 3000, host: default_host() }
     }
 }
 
 fn default_port() -> u16 { 3000 }
+fn default_host() -> String { "0.0.0.0".to_string() }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DatabaseSettings {

@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         crate::modules::reminders::run_reminder_checker(reminder_state).await;
     });
 
-    if let Err(e) = web::start(state, settings.web.port).await {
+    if let Err(e) = web::start(state, settings.web.host.clone(), settings.web.port).await {
         eprintln!("Web dashboard error: {}", e);
     }
 

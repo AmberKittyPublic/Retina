@@ -49,7 +49,7 @@ fn render_page(template: &str, title: &str, content: &str) -> String {
         .replace("{{CONTENT}}", content)
 }
 
-pub async fn start(state: AppState, port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start(state: AppState, host: String, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     let mut sessions_map = HashMap::new();
     if let Ok(rows) = state.db.load_valid_sessions().await {
         for row in rows {
@@ -88,11 +88,11 @@ pub async fn start(state: AppState, port: u16) -> Result<(), Box<dyn std::error:
         .nest_service("/static", ServeDir::new("static"))
         .with_state((state, sessions));
 
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port)).await?;
+    let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port)).await?;
 
     println!("========================================");
-    println!("Dashboard running on http://localhost:{}", port);
-    println!("Login at http://localhost:{}/login", port);
+    println!("Dashboard running on http://{}:{}", host, port);
+    println!("Login at http://{}:{}/login", host, port);
     println!("========================================");
     println!("IF YOU GET SSL ERROR:");
     println!("1. Make sure you're using http:// (not https://)");
