@@ -6,7 +6,7 @@
 
 Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord API), **axum** (web server), **sqlx + SQLite** (database), **tokio** (async runtime).
 
-**Current status:** All major Dyno feature categories implemented. ~50+ slash commands total. Web dashboard for configuration. No outstanding build errors.
+**Current status:** All major Dyno feature categories implemented. **94** slash commands total. Web dashboard for configuration. No outstanding build errors.
 
 ---
 
@@ -64,7 +64,7 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 | **Reminders** | ★ Complete | background 30s poll loop, remindme command |
 | **Manager** | ★ Complete | addmod/delmod/listmods, nick, addrole/delrole |
 | **Scheduling** | ★ Complete | tempban, tempmute, scheduled announcements with interval repeats |
-| **Web Dashboard** (per-server config UI) | ★ Complete | OAuth login with session cookie, guild picker, module toggles, auto-mod config, welcome, reaction-roles, custom-commands, giveaways, tickets, XP/leveling config, bot-in-server detection, invite flow, auth on all POST endpoints |
+| **Web Dashboard** (per-server config UI) | ★ Complete | OAuth login with session cookie, guild picker, module toggles, auto-mod config, welcome, reaction-roles, custom-commands, giveaways, tickets, XP/leveling config, bot-in-server detection, invite flow, commands & wiki pages, POST endpoints (no auth yet) |
 
 ---
 
@@ -76,6 +76,19 @@ discord-bot/
 ├── migrations/              # SQLite migrations (sqlx)
 │   ├── 20250101000000_initial.sql
 │   ├── 20250102000000_create_sessions.sql
+│   ├── 20250103000000_add_welcome.sql
+│   ├── 20250104000000_create_custom_commands.sql
+│   ├── 20250105000000_add_custom_commands_module.sql
+│   ├── 20250106000000_create_reaction_roles.sql
+│   ├── 20250107000000_add_reaction_roles_module.sql
+│   ├── 20250108000000_create_giveaways.sql
+│   ├── 20250109000000_create_ticket_tables.sql
+│   ├── 20250110000000_add_tickets_module.sql
+│   ├── 20250111000000_create_xp_tables.sql
+│   ├── 20250112000000_add_xp_module.sql
+│   ├── 20250113000000_create_scheduled_announcements.sql
+│   ├── 20250114000000_create_scheduled_actions.sql
+│   ├── 20250115000000_add_scheduling_module.sql
 │   └── 20250117000000_extend_commands.sql
 ├── static/
 │   ├── style.scss           # All dashboard styles (SCSS with variables & nesting)
@@ -92,12 +105,21 @@ discord-bot/
 │       ├── dashboard_content.html
 │       ├── server_config.html
 │       ├── rule_card.html
-│       ├── rule_spam_fields.html
+│       ├── commands_content.html
+│       ├── dashboard_content.html
+│       ├── index_anonymous.html
+│       ├── index_logged_in.html
+│       ├── rule_banned_words_fields.html
 │       ├── rule_caps_fields.html
-│       ├── rule_mentions_fields.html
+│       ├── rule_card.html
 │       ├── rule_emotes_fields.html
 │       ├── rule_max_length_fields.html
-│       └── rule_banned_words_fields.html
+│       ├── rule_mentions_fields.html
+│       ├── rule_spam_fields.html
+│       ├── server_card.html
+│       ├── server_config.html
+│       ├── server_no_servers.html
+│       └── wiki_content.html
 ├── src/
 │   ├── main.rs              # Entrypoint — parses CLI, loads config.toml, starts bot & web + spawns scheduler & reminder checker
 │   ├── cli.rs               # Clap CLI definition (--config path)
@@ -126,7 +148,7 @@ discord-bot/
 │   │   ├── scheduling.rs    # tempban, tempmute, scheduled announcements with interval repeats
 │   │   ├── tickets.rs       # /ticket setup/close/claim/add/remove, panel reaction create, permissions
 │   │   └── xp.rs            # /rank /leaderboard /xp set/add/role, message XP handler, level-up roles
-│   └── web/mod.rs           # Axum dashboard — 8 handlers, render_page(), template partials
+│   └── web/mod.rs           # Axum dashboard — 18 routes, render_page(), template partials
 ├── config.example.toml      # Example config file (discord, web, database sections)
 ├── cert.pem / key.pem       # SSL certs (present but NOT used — redirect URL is http)
 └── Cargo.toml
@@ -166,8 +188,8 @@ discord-bot/
 ### 4. `config/mod.rs` — Configuration structs
 - **`Settings`** (from `config.toml`):
   - `discord`: `token`, `client_id`, `client_secret`, `owner_id` (optional)
-  - `web`: `port` (default: 3000)
-  - `database`: `url` (default: `sqlite:./retina.db`)
+  - `web`: `host` (default: `0.0.0.0`), `port` (default: 3000)
+  - `database`: `url` (default: `sqlite:retina.db`)
   - Loaded via `Settings::load("config.toml")` — reads file + deserializes with `toml` + `serde`
 - **`Config`** — runtime bot config: `prefix`, `owner_ids`, `ModulesConfig`. In-memory defaults (no persistence).
 - **`GuildConfig`** — per-guild: `guild_id`, `ModulesConfig`, `AutoModConfig`, `WelcomeConfig`. Persisted in SQLite via `Database`.
@@ -209,8 +231,8 @@ discord-bot/
 - **tickets.rs**: Ticket system with panel, private channels, claim/close/add/remove.
 - **xp.rs**: Message XP with cooldown, level-up roles, leaderboards.
 
-### 8. `web/mod.rs` — Web Dashboard (~500 lines)
-- Routes: `/`, `/login`, `/auth/callback`, `/logout`, `/dashboard`, `/server/:guild_id`, `/server/:guild_id/toggle`, `/server/:guild_id/automod`, `/api/stats`, `/api/modules`
+### 8. `web/mod.rs` — Web Dashboard (~1200 lines)
+- Routes: `/`, `/commands`, `/wiki`, `/login`, `/auth/callback`, `/logout`, `/dashboard`, `/server/:guild_id`, `/server/:guild_id/toggle`, `/server/:guild_id/automod`, `/server/:guild_id/welcome`, `/server/:guild_id/custom_command`, `/server/:guild_id/reaction_role`, `/server/:guild_id/xp_config`, `/server/:guild_id/ticket`, `/server/:guild_id/xp_reward`, `/api/stats`, `/api/modules`
 - Template system with compile-time includes
 - OAuth2 flow with DB-persisted sessions (24h expiry)
 - Bot-in-server detection for invite/manage UI
@@ -318,10 +340,11 @@ client_secret = "..."       # Required: OAuth2 client secret
 owner_id = "..."            # Optional: Discord user ID for admin
 
 [web]
+host = "0.0.0.0"            # Optional: web dashboard host (default: 0.0.0.0)
 port = 3000                 # Optional: web dashboard port (default: 3000)
 
 [database]
-url = "sqlite:./retina.db"  # Optional: SQLite connection string
+url = "sqlite:retina.db"    # Optional: SQLite connection string
 ```
 
 ---
@@ -356,4 +379,10 @@ Requires Rust edition 2021. Dependencies are in `Cargo.toml`.
 | `serde` / `serde_json` | Serialization |
 | `tower-http` | Static file serving (features = ["full"]) |
 | `rustls` / `tokio-rustls` | TLS (present but unused) |
+| `rustls-pemfile 1.0` | PEM file parsing for TLS |
+| `tower 0.4` | Service middleware layer |
+| `tracing-subscriber 0.3` | Logging subscriber |
+| `base64 0.22` | Base64 encoding for session tokens |
+| `mlua 0.11` | Lua scripting for custom commands (lua54, send) |
+| `rand 0.8` | Random number generation (giveaways, fun commands) |
 | `grass 0.13` | SCSS-to-CSS compiler (build dependency via build.rs) |
