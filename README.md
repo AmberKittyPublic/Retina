@@ -1,11 +1,6 @@
-# Retina - Discord Bot
+# Retina — Discord Bot
 
 A full-featured Discord bot written in Rust, aiming to be a feature-complete clone of **Dyno**. The bot and web dashboard run in the same process, sharing state via `Arc<RwLock<T>>`.
-
-(Note: it is mainly written by hand, 
-   only used opencode to keep track of the state, the todo's,
-   and in some places where i couldn't find the answer myself,
-   but even that is carefully evaluated and tested)
 
 **Tech stack:** Rust, poise (slash commands), serenity (Discord API), axum (web server), sqlx + SQLite (database), tokio (async runtime).
 

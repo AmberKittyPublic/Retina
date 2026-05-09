@@ -17,6 +17,23 @@ async function toggleModule(module) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    var tabs = document.getElementById('cmdTabs');
+    if (tabs) {
+        tabs.querySelectorAll('.tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                tabs.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+                this.classList.add('active');
+                if (this.dataset.tab === 'all') {
+                    document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.add('active'); });
+                } else {
+                    document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+                    var target = document.getElementById('tab-' + this.dataset.tab);
+                    if (target) target.classList.add('active');
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    }
     document.querySelectorAll('.rule-action').forEach(function (sel) {
         sel.addEventListener('change', function () {
             var t = this.dataset.type;

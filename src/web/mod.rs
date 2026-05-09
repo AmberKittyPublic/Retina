@@ -111,17 +111,40 @@ async fn index_handler(
     let mut web_state = state.web_state.write().await;
     web_state.visits += 1;
 
+    let bot_state = state.bot_state.read().await;
+    let guild_count = bot_state.bot_guilds.len();
+    let cmds_executed = bot_state.commands_executed;
+    let uptime_str = bot_state.started_at
+        .map(|t| {
+            let d = t.elapsed().unwrap_or_default().as_secs();
+            let days = d / 86400;
+            let hours = (d % 86400) / 3600;
+            let mins = (d % 3600) / 60;
+            let secs = d % 60;
+            if days > 0 { format!("{}d {}h {}m {}s", days, hours, mins, secs) }
+            else if hours > 0 { format!("{}h {}m {}s", hours, mins, secs) }
+            else { format!("{}m {}s", mins, secs) }
+        })
+        .unwrap_or_else(|| "N/A".to_string());
+    drop(bot_state);
+
     let user = get_user_from_session(&state, &sessions, &headers, &params).await;
 
     let content = if let Some(user) = user {
         include_str!("../../templates/partials/index_logged_in.html")
             .replace("{{USERNAME}}", &user.username)
+            .replace("{{GUILD_COUNT}}", &guild_count.to_string())
+            .replace("{{CMDS_EXECUTED}}", &cmds_executed.to_string())
+            .replace("{{UPTIME}}", &uptime_str)
     } else {
-        include_str!("../../templates/partials/index_anonymous.html").to_string()
+        include_str!("../../templates/partials/index_anonymous.html")
+            .replace("{{GUILD_COUNT}}", &guild_count.to_string())
+            .replace("{{CMDS_EXECUTED}}", &cmds_executed.to_string())
+            .replace("{{UPTIME}}", &uptime_str)
     };
 
     let template = include_str!("../../templates/index.html");
-    Html(render_page(template, "Discord Bot Dashboard", &content))
+    Html(render_page(template, "Retina Bot Dashboard", &content))
 }
 
 async fn commands_handler() -> Html<String> {
@@ -1036,9 +1059,57 @@ async fn api_stats(State((state, _)): State<(AppState, SessionStore)>) -> Json<s
     let bot_state = state.bot_state.read().await;
     let web_state = state.web_state.read().await;
 
+    let uptime = bot_state.started_at
+        .map(|t| t.elapsed().unwrap_or_default())
+        .unwrap_or_default();
+    let uptime_secs = uptime.as_secs();
+    let days = uptime_secs / 86400;
+    let hours = (uptime_secs % 86400) / 3600;
+    let mins = (uptime_secs % 3600) / 60;
+    let secs = uptime_secs % 60;
+
+    let total_warnings = state.db.get_total_warnings().await.unwrap_or(0);
+    let total_custom_commands = state.db.get_total_custom_commands().await.unwrap_or(0);
+    let total_giveaways = state.db.get_total_giveaways().await.unwrap_or(0);
+    let active_giveaways = state.db.get_active_giveaway_count().await.unwrap_or(0);
+    let total_tickets = state.db.get_total_tickets().await.unwrap_or(0);
+    let open_tickets = state.db.get_open_ticket_count().await.unwrap_or(0);
+    let total_guild_configs = state.db.get_total_guild_configs().await.unwrap_or(0);
+    let total_reaction_roles = state.db.get_total_reaction_roles().await.unwrap_or(0);
+    let total_xp_data = state.db.get_total_xp_data().await.unwrap_or(0);
+
     Json(json!({
         "commands_executed": bot_state.commands_executed,
         "web_visits": web_state.visits,
+        "guild_count": bot_state.bot_guilds.len(),
+        "configured_guilds": total_guild_configs,
+        "uptime": {
+            "days": days,
+            "hours": hours,
+            "minutes": mins,
+            "seconds": secs,
+            "total_seconds": uptime_secs
+        },
+        "moderation": {
+            "total_warnings": total_warnings
+        },
+        "custom_commands": {
+            "total": total_custom_commands
+        },
+        "giveaways": {
+            "total": total_giveaways,
+            "active": active_giveaways
+        },
+        "tickets": {
+            "total": total_tickets,
+            "open": open_tickets
+        },
+        "reaction_roles": {
+            "total": total_reaction_roles
+        },
+        "xp": {
+            "total_users": total_xp_data
+        },
         "status": "online"
     }))
 }

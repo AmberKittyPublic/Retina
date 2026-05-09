@@ -1137,6 +1137,60 @@ impl Database {
         ).bind(guild_id).bind(user_id).fetch_one(&self.pool).await?;
         Ok(row.0)
     }
+
+    pub async fn get_total_warnings(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM warnings")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_total_custom_commands(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM custom_commands")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_total_giveaways(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM giveaways")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_active_giveaway_count(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM giveaways WHERE ended = 0")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_total_tickets(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM tickets")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_open_ticket_count(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM tickets WHERE status = 'open'")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_total_guild_configs(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM guild_configs")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_total_reaction_roles(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM reaction_roles")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
+
+    pub async fn get_total_xp_data(&self) -> Result<i64, sqlx::Error> {
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM xp_data")
+            .fetch_one(&self.pool).await?;
+        Ok(row.0)
+    }
 }
 
 pub fn xp_level(xp: i64) -> i64 {

@@ -1,5 +1,5 @@
 <div class="header">
-    <h1>Discord Bot Dashboard</h1>
+    <h1>Retina Bot Dashboard</h1>
 </div>
 <div class="nav">
     <a href="/" class="btn">Home</a>
@@ -11,3 +11,66 @@
 <div class="user-info">
     <p>Logged in as: <strong>{{USERNAME}}</strong></p>
 </div>
+<div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+        <span class="stat-value">{{GUILD_COUNT}}</span>
+        <span class="stat-label">Guilds</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{CMDS_EXECUTED}}</span>
+        <span class="stat-label">Commands Run</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{UPTIME}}</span>
+        <span class="stat-label">Uptime</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statWarnings">-</span>
+        <span class="stat-label">Warnings Issued</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statCommands">-</span>
+        <span class="stat-label">Custom Commands</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statGiveaways">-</span>
+        <span class="stat-label">Active Giveaways</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statTickets">-</span>
+        <span class="stat-label">Open Tickets</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statVisits">-</span>
+        <span class="stat-label">Web Visits</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statReactionRoles">-</span>
+        <span class="stat-label">Reaction Roles</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statXpUsers">-</span>
+        <span class="stat-label">Tracked Users (XP)</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value stat-dynamic" id="statConfiguredGuilds">-</span>
+        <span class="stat-label">Configured Guilds</span>
+    </div>
+</div>
+<script>
+async function loadStats() {
+    try {
+        var r = await fetch('/api/stats');
+        var d = await r.json();
+        document.getElementById('statWarnings').textContent = d.moderation.total_warnings;
+        document.getElementById('statCommands').textContent = d.custom_commands.total;
+        document.getElementById('statGiveaways').textContent = d.giveaways.active;
+        document.getElementById('statTickets').textContent = d.tickets.open;
+        document.getElementById('statVisits').textContent = d.web_visits;
+        document.getElementById('statReactionRoles').textContent = d.reaction_roles.total;
+        document.getElementById('statXpUsers').textContent = d.xp.total_users;
+        document.getElementById('statConfiguredGuilds').textContent = d.configured_guilds;
+    } catch(e) {}
+}
+loadStats();
+</script>
