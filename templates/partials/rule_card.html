@@ -1,0 +1,23 @@
+<div class="rule-card">
+    <div class="module">
+        <span>{{RULE_LABEL}} <span class="rule-type">({{RULE_TYPE}})</span></span>
+        <label class="toggle"><input type="checkbox" class="rule-toggle" data-type="{{RULE_TYPE}}" {{CHECKED}}><span class="slider"></span></label>
+    </div>
+    <div class="rule-settings" id="settings-{{RULE_TYPE}}" style="display:{{DISPLAY}};">
+        {{EXTRA_FIELDS}}
+        <div class="form-group">
+            <label>Action</label>
+            <select class="rule-action" data-type="{{RULE_TYPE}}">
+                <option value="delete" {{DELETE_SELECTED}}>Delete</option>
+                <option value="warn" {{WARN_SELECTED}}>Warn</option>
+                <option value="timeout" {{TIMEOUT_SELECTED}}>Timeout</option>
+                <option value="kick" {{KICK_SELECTED}}>Kick</option>
+                <option value="ban" {{BAN_SELECTED}}>Ban</option>
+            </select>
+        </div>
+        <div class="form-group" id="duration-group-{{RULE_TYPE}}" style="display:{{DURATION_DISPLAY}};">
+            <label>Duration (minutes)</label>
+            <input type="number" class="rule-duration" data-type="{{RULE_TYPE}}" value="{{DURATION_VAL}}" />
+        </div>
+    </div>
+</div>

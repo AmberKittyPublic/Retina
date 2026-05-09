@@ -1,0 +1,75 @@
+<div class="header">
+    <h1>Commands</h1>
+</div>
+<div class="nav">
+    <a href="/" class="btn">Home</a>
+    <a href="/commands" class="btn">Commands</a>
+    <a href="/wiki" class="btn">Wiki</a>
+    <a href="/dashboard" class="btn">My Servers</a>
+    <a href="/logout" class="btn btn-red">Logout</a>
+</div>
+
+<div class="card">
+    <h2>General</h2>
+    <table class="cmd-table">
+        <tr><td><code>/ping</code></td><td>Check the bot's WebSocket latency</td><td>None</td></tr>
+        <tr><td><code>/info</code></td><td>Show bot stats (commands executed, guild count)</td><td>None</td></tr>
+        <tr><td><code>/stats</code></td><td>Show bot uptime and command count</td><td>None</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Moderation</h2>
+    <table class="cmd-table">
+        <tr><td><code>/ban &lt;user&gt; [reason]</code></td><td>Permanently ban a user</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+        <tr><td><code>/kick &lt;user&gt; [reason]</code></td><td>Kick a user</td><td><span class="perm">KICK_MEMBERS</span></td></tr>
+        <tr><td><code>/warn &lt;user&gt; &lt;reason&gt;</code></td><td>Warn a user (stored in database)</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/warnings &lt;user&gt;</code></td><td>View a user's warning history</td><td>None</td></tr>
+        <tr><td><code>/mute &lt;user&gt; &lt;minutes&gt; [reason]</code></td><td>Timeout a user (max 28 days)</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/purge &lt;count&gt;</code></td><td>Bulk delete messages (2–100)</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+        <tr><td><code>/slowmode &lt;seconds&gt;</code></td><td>Set channel slowmode (0 to disable, max 21600)</td><td><span class="perm">MANAGE_CHANNELS</span></td></tr>
+        <tr><td><code>/lockdown &lt;lock|unlock&gt;</code></td><td>Lock or unlock the current channel</td><td><span class="perm">MANAGE_CHANNELS</span></td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Scheduling</h2>
+    <table class="cmd-table">
+        <tr><td><code>/tempban &lt;user&gt; &lt;minutes&gt; [reason]</code></td><td>Temporarily ban a user (auto-unban after duration)</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+        <tr><td><code>/tempmute &lt;user&gt; &lt;minutes&gt; [reason]</code></td><td>Temporarily mute a user (max 28 days)</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/scheduled announce &lt;channel&gt; &lt;title&gt; &lt;message&gt; &lt;datetime&gt; [interval]</code></td><td>Schedule a one-time or repeating announcement</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/scheduled list</code></td><td>List all pending scheduled actions and announcements</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/scheduled cancel &lt;id&gt;</code></td><td>Cancel a scheduled item (use A# or S# from list)</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Giveaways</h2>
+    <table class="cmd-table">
+        <tr><td><code>/giveaway create &lt;prize&gt; &lt;minutes&gt; [winners]</code></td><td>Start a giveaway with reaction entry</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/giveaway reroll &lt;message_id&gt; [count]</code></td><td>Pick new winner(s) for a ended giveaway</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/giveaway end &lt;message_id&gt;</code></td><td>Force-end a giveaway early</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Tickets</h2>
+    <table class="cmd-table">
+        <tr><td><code>/ticket setup &lt;category_id&gt; [staff_role_id]</code></td><td>Set up the ticket panel in the current channel</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/ticket close</code></td><td>Close the current ticket channel</td><td>Creator or Staff</td></tr>
+        <tr><td><code>/ticket claim</code></td><td>Claim an open ticket</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+        <tr><td><code>/ticket add &lt;user&gt;</code></td><td>Add a user to the ticket</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+        <tr><td><code>/ticket remove &lt;user&gt;</code></td><td>Remove a user from the ticket</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Leveling / XP</h2>
+    <table class="cmd-table">
+        <tr><td><code>/rank [user]</code></td><td>Show your or another user's XP rank and level</td><td>None</td></tr>
+        <tr><td><code>/leaderboard</code></td><td>Show the server's XP leaderboard (top 10)</td><td>None</td></tr>
+        <tr><td><code>/xp set &lt;user&gt; &lt;amount&gt;</code></td><td>Set a user's XP (recalculates level)</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/xp add &lt;user&gt; &lt;amount&gt;</code></td><td>Add XP to a user</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/xp role &lt;level&gt; &lt;role&gt;</code></td><td>Assign a role reward at a given level</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+    </table>
+</div>

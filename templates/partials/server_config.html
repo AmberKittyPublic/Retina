@@ -1,0 +1,236 @@
+<div class="header">
+    <h1>{{GUILD_NAME}}</h1>
+    <a href="/dashboard?t={{TOKEN}}" class="btn">Servers</a>
+</div>
+<div class="nav">
+    <a href="/?t={{TOKEN}}" class="btn">Home</a>
+    <a href="/commands" class="btn">Commands</a>
+    <a href="/wiki" class="btn">Wiki</a>
+    <a href="/dashboard?t={{TOKEN}}" class="btn">Servers</a>
+    <a href="/logout" class="btn btn-red">Logout</a>
+</div>
+<div data-guild-id="{{GUILD_ID}}">
+<div class="card">
+    <h2>Modules</h2>
+    <div class="module">
+        <span>Moderation</span>
+        <label class="toggle">
+            <input type="checkbox" name="moderation" {{MODERATION_CHECKED}} onchange="toggleModule('moderation')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="module">
+        <span>Auto-Mod</span>
+        <label class="toggle">
+            <input type="checkbox" name="auto_mod" {{AUTOMOD_CHECKED}} onchange="toggleModule('auto_mod')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="module">
+        <span>Logging</span>
+        <label class="toggle">
+            <input type="checkbox" name="logging" {{LOGGING_CHECKED}} onchange="toggleModule('logging')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="module">
+        <span>Scheduling</span>
+        <label class="toggle">
+            <input type="checkbox" name="scheduling" {{SCHEDULING_CHECKED}} onchange="toggleModule('scheduling')">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+<div class="card">
+    <h2>Auto-Mod Rules</h2>
+    <div class="module">
+        <span>Master Toggle</span>
+        <label class="toggle">
+            <input type="checkbox" id="autoModEnabled" {{AUTOMOD_ENABLED_CHECKED}}>
+            <span class="slider"></span>
+        </label>
+    </div>
+    {{RULE_CARDS}}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px;">
+        <div class="form-group">
+            <label>Channel Whitelist (only check these channels — one ID per line, leave empty for all)</label>
+            <textarea id="channelWhitelist" rows="4" class="rule-input" placeholder="Channel IDs, one per line">{{CHANNEL_WHITELIST}}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Channel Blacklist (never check these channels — one ID per line)</label>
+            <textarea id="channelBlacklist" rows="4" class="rule-input" placeholder="Channel IDs, one per line">{{CHANNEL_BLACKLIST}}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Role Whitelist (only check users with these roles — one ID per line, leave empty for all)</label>
+            <textarea id="roleWhitelist" rows="4" class="rule-input" placeholder="Role IDs, one per line">{{ROLE_WHITELIST}}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Role Blacklist (never check users with these roles — one ID per line)</label>
+            <textarea id="roleBlacklist" rows="4" class="rule-input" placeholder="Role IDs, one per line">{{ROLE_BLACKLIST}}</textarea>
+        </div>
+    </div>
+    <button class="btn" onclick="saveAutoMod()" style="margin-top:15px;">Save All Auto-Mod Settings</button>
+</div>
+<div class="card">
+    <h2>Welcome / Goodbye</h2>
+    <div class="module">
+        <span>Welcome Messages</span>
+        <label class="toggle">
+            <input type="checkbox" name="welcome" {{WELCOME_CHECKED}} onchange="toggleModule('welcome')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="form-group">
+        <label>Welcome Channel ID:</label>
+        <input type="text" id="welcomeChannelId" value="{{WELCOME_CHANNEL_ID}}" placeholder="Channel ID" class="rule-input">
+    </div>
+    <div class="form-group">
+        <label>Welcome Message (<code>{user}</code>, <code>{mention}</code>, <code>{guild}</code>):</label>
+        <textarea id="welcomeMessage" rows="3" class="rule-input">{{WELCOME_MESSAGE}}</textarea>
+    </div>
+    <div class="form-group">
+        <label>Goodbye Channel ID:</label>
+        <input type="text" id="goodbyeChannelId" value="{{GOODBYE_CHANNEL_ID}}" placeholder="Channel ID" class="rule-input">
+    </div>
+    <div class="form-group">
+        <label>Goodbye Message (<code>{user}</code>, <code>{mention}</code>, <code>{guild}</code>):</label>
+        <textarea id="goodbyeMessage" rows="3" class="rule-input">{{GOODBYE_MESSAGE}}</textarea>
+    </div>
+    <button class="btn" onclick="saveWelcome()" style="margin-top:15px;">Save Welcome Settings</button>
+</div>
+<div class="card">
+    <h2>Reaction Roles</h2>
+    <div class="module">
+        <span>Reaction Roles</span>
+        <label class="toggle">
+            <input type="checkbox" name="reaction_roles" {{REACTION_ROLES_CHECKED}} onchange="toggleModule('reaction_roles')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    {{REACTION_ROLES_LIST}}
+    <details style="margin-top:10px;">
+        <summary style="cursor:pointer;color:#7289da;">Add Reaction Role</summary>
+        <div class="form-group">
+            <label>Channel ID:</label>
+            <input type="text" id="rrChannelId" placeholder="Channel ID" class="rule-input">
+        </div>
+        <div class="form-group">
+            <label>Message ID:</label>
+            <input type="text" id="rrMessageId" placeholder="Message ID" class="rule-input">
+        </div>
+        <div class="form-group">
+            <label>Role ID:</label>
+            <input type="text" id="rrRoleId" placeholder="Role ID" class="rule-input">
+        </div>
+        <div class="form-group">
+            <label>Emoji (unicode or <code>&lt;:name:id&gt;</code>):</label>
+            <input type="text" id="rrEmoji" placeholder="e.g. 👍 or <:pepe:123>" class="rule-input">
+        </div>
+        <button class="btn" onclick="addReactionRole()" style="margin-top:5px;">Add</button>
+    </details>
+</div>
+<div class="card">
+    <h2>Custom Commands</h2>
+    <div class="module">
+        <span>Custom Commands</span>
+        <label class="toggle">
+            <input type="checkbox" name="custom_commands" {{CUSTOM_COMMANDS_CHECKED}} onchange="toggleModule('custom_commands')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <p style="margin:10px 0;font-size:14px;color:#aaa;">
+        Triggers with bot prefix (<code>!</code> by default). Commands are written in <strong>Lua</strong>.
+        Available API: <code>api.send(channel_id, text)</code>,
+        <code>api.reply(text)</code>, <code>api.ban(user_id, reason)</code>, <code>api.kick(user_id)</code>,
+        <code>api.timeout(user_id, minutes)</code>, <code>api.warn(user_id, reason)</code>,
+        <code>api.add_role(user_id, role_id)</code>, <code>api.remove_role(user_id, role_id)</code>,
+        <code>api.has_role(role_id)</code>, <code>api.embed(title, desc, color)</code>,
+        <code>api.react(emoji)</code>, <code>api.delete()</code>, <code>api.edit(content)</code>.
+        Access <code>message.author_id</code>, <code>message.author_name</code>, <code>message.author_mention</code>,
+        <code>message.channel_id</code>, <code>message.channel_name</code>, <code>message.guild_id</code>,
+        <code>message.guild_name</code>, <code>message.content</code>, <code>args[1]</code>, <code>args[2]</code>, etc.
+    </p>
+    {{CUSTOM_COMMANDS_LIST}}
+    <details style="margin-top:10px;">
+        <summary style="cursor:pointer;color:#7289da;">Add New Command</summary>
+        <div class="form-group">
+            <label>Trigger Name:</label>
+            <input type="text" id="newCmdName" placeholder="e.g. greet" class="rule-input">
+        </div>
+        <div class="form-group">
+            <label>Script (return a string to reply):</label>
+            <textarea id="newCmdScript" rows="6" class="rule-input" placeholder='return "Hello " .. message.author_name .. "!"'></textarea>
+        </div>
+        <button class="btn" onclick="saveCustomCommand()" style="margin-top:5px;">Save Command</button>
+    </details>
+</div>
+<div class="card">
+    <h2>Giveaways</h2>
+    <p style="margin:10px 0;font-size:14px;color:#aaa;">
+        Use <code>/giveaway create</code> in a Discord channel to start a giveaway.
+        <br>List of active giveaways in this server:
+    </p>
+    <div id="giveaway-list">
+        {{GIVEAWAY_LIST}}
+    </div>
+</div>
+<div class="card">
+    <h2>Tickets</h2>
+    <div class="module">
+        <span>Ticket System</span>
+        <label class="toggle">
+            <input type="checkbox" name="tickets" {{TICKETS_CHECKED}} onchange="toggleModule('tickets')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <p style="margin:10px 0;font-size:14px;color:#aaa;">
+        Use <code>/ticket setup &lt;category_id&gt;</code> in a Discord channel to create the ticket panel.
+        <br>Category ID: <code>{{TICKET_CATEGORY_ID}}</code>
+        <br>Staff Role ID: <code>{{TICKET_STAFF_ROLE_ID}}</code>
+        {{TICKET_PANEL_LINK}}
+    </p>
+    <h3 style="margin-top:15px;">Tickets</h3>
+    <div id="tickets-list">
+        {{TICKETS_LIST}}
+    </div>
+</div>
+<div class="card">
+    <h2>Leveling / XP</h2>
+    <div class="module">
+        <span>XP System</span>
+        <label class="toggle">
+            <input type="checkbox" name="xp" {{XP_CHECKED}} onchange="toggleModule('xp')">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="form-group">
+        <label>XP per message:</label>
+        <input type="number" id="xpPerMessage" value="{{XP_PER_MESSAGE}}" class="rule-input" min="1" max="1000">
+    </div>
+    <div class="form-group">
+        <label>Cooldown (seconds):</label>
+        <input type="number" id="xpCooldown" value="{{XP_COOLDOWN}}" class="rule-input" min="0" max="3600">
+    </div>
+    <div class="form-group">
+        <label>Minimum characters:</label>
+        <input type="number" id="xpMinChars" value="{{XP_MIN_CHARS}}" class="rule-input" min="0" max="1000">
+    </div>
+    <button class="btn" onclick="saveXpConfig()" style="margin-top:10px;">Save XP Settings</button>
+    <h3 style="margin-top:15px;">Role Rewards</h3>
+    <div id="xp-rewards-list">
+        {{XP_REWARDS_LIST}}
+    </div>
+    <details style="margin-top:10px;">
+        <summary style="cursor:pointer;color:#7289da;">Add Role Reward</summary>
+        <div class="form-group">
+            <label>Level:</label>
+            <input type="number" id="xpRewardLevel" placeholder="5" class="rule-input" min="1">
+        </div>
+        <div class="form-group">
+            <label>Role ID:</label>
+            <input type="text" id="xpRewardRole" placeholder="Role ID" class="rule-input">
+        </div>
+        <button class="btn" onclick="addXpReward()" style="margin-top:5px;">Add Reward</button>
+    </details>
+</div>
+</div>
