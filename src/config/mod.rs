@@ -5,6 +5,7 @@ use std::path::Path;
 pub struct Config {
     pub prefix: String,
     pub owner_ids: Vec<u64>,
+    pub admin_ids: Vec<u64>,
     pub modules: ModulesConfig,
 }
 
@@ -13,6 +14,7 @@ impl Default for Config {
         Config {
             prefix: "!".to_string(),
             owner_ids: vec![],
+            admin_ids: vec![],
             modules: ModulesConfig::default(),
         }
     }
@@ -190,6 +192,8 @@ pub struct DiscordSettings {
     pub client_id: String,
     pub client_secret: String,
     pub owner_id: Option<String>,
+    #[serde(default)]
+    pub admin_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -14,11 +14,19 @@ pub struct AppState {
     pub spam_tracker: Arc<RwLock<HashMap<String, Vec<Instant>>>>,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct GuildInfo {
+    pub name: String,
+    pub owner_id: String,
+    pub icon: Option<String>,
+}
+
 #[derive(Default)]
 pub struct BotState {
     pub commands_executed: u64,
     pub started_at: Option<std::time::SystemTime>,
     pub bot_guilds: HashSet<String>,
+    pub guild_info: HashMap<String, GuildInfo>,
 }
 
 #[derive(Default)]

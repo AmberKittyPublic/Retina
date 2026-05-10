@@ -1,5 +1,4 @@
-use crate::types::AppState;
-use crate::types::Error;
+use crate::types::{AppState, Error, GuildInfo};
 use poise::serenity_prelude as serenity;
 
 pub async fn handle_event(
@@ -14,16 +13,32 @@ pub async fn handle_event(
             let mut bot_state = state.bot_state.write().await;
             bot_state.started_at = Some(std::time::SystemTime::now());
             for guild_id in ctx.cache.guilds() {
-                bot_state.bot_guilds.insert(guild_id.to_string());
+                let id_str = guild_id.to_string();
+                bot_state.bot_guilds.insert(id_str.clone());
+                if let Some(guild) = ctx.cache.guild(guild_id) {
+                    bot_state.guild_info.insert(id_str, GuildInfo {
+                        name: guild.name.clone(),
+                        owner_id: guild.owner_id.to_string(),
+                        icon: guild.icon.clone().map(|i| i.to_string()),
+                    });
+                }
             }
         }
         serenity::FullEvent::GuildCreate { guild, .. } => {
             let mut bot_state = state.bot_state.write().await;
-            bot_state.bot_guilds.insert(guild.id.to_string());
+            let id_str = guild.id.to_string();
+            bot_state.bot_guilds.insert(id_str.clone());
+            bot_state.guild_info.insert(id_str, GuildInfo {
+                name: guild.name.clone(),
+                owner_id: guild.owner_id.to_string(),
+                icon: guild.icon.clone().map(|i| i.to_string()),
+            });
         }
         serenity::FullEvent::GuildDelete { incomplete, .. } => {
             let mut bot_state = state.bot_state.write().await;
-            bot_state.bot_guilds.remove(&incomplete.id.to_string());
+            let id_str = incomplete.id.to_string();
+            bot_state.bot_guilds.remove(&id_str);
+            bot_state.guild_info.remove(&id_str);
         }
         serenity::FullEvent::Message { new_message } => {
             if new_message.author.bot { return Ok(()); }

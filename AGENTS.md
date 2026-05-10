@@ -40,8 +40,20 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 - Wired all new modules into `commands/mod.rs`, `events/mod.rs`, `modules/mod.rs`, `main.rs`
 - Build compiles with zero errors
 
+### Done (this session)
+- Added `admin_ids: Vec<u64>` to `Config` and `admin_ids: Vec<String>` to `DiscordSettings` in `config/mod.rs`
+- Added `admin_ids` parsing in `main.rs` from config TOML
+- Added `GuildInfo` struct (name, owner_id, icon) and `guild_info: HashMap<String, GuildInfo>` to `BotState` in `types.rs`
+- Populated `guild_info` in event handlers (`Ready`, `GuildCreate`, `GuildDelete`) in `events/mod.rs`
+- Added `/admin` route + `admin_handler` in `web/mod.rs` — bot admin panel with live stats and guild list with icons/names/owners
+- Added `is_user_admin()` helper to check `config.admin_ids`
+- Added `{{ADMIN_NAV_LINK}}` to nav partials for admin users
+- Created `templates/partials/admin_content.html`
+- Fixed `server_dashboard_handler` to check guild permissions (MANAGE_GUILD/ADMINISTRATOR) — returns 403 for members without admin privs, bot admins bypass
+- Updated README comprehensively
+
 ### In Progress / Next
-- (nothing currently in progress — all major feature blocks complete)
+- (nothing currently in progress)
 
 ---
 
@@ -64,7 +76,7 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 | **Reminders** | ★ Complete | background 30s poll loop, remindme command |
 | **Manager** | ★ Complete | addmod/delmod/listmods, nick, addrole/delrole |
 | **Scheduling** | ★ Complete | tempban, tempmute, scheduled announcements with interval repeats |
-| **Web Dashboard** (per-server config UI) | ★ Complete | OAuth login with session cookie, guild picker, module toggles, auto-mod config, welcome, reaction-roles, custom-commands, giveaways, tickets, XP/leveling config, bot-in-server detection, invite flow, commands & wiki pages, POST endpoints (no auth yet) |
+| **Web Dashboard** (per-server + admin panel) | ★ Complete | OAuth login with session cookie, guild picker, module toggles, auto-mod config, welcome, reaction-roles, custom-commands, giveaways, tickets, XP/leveling config, bot-in-server detection, invite flow, commands & wiki pages, POST endpoints (no auth yet) + `/admin` bot admin panel with live stats and guild list + permission enforcement (403 for non-admin members on server config) |
 
 ---
 
@@ -119,7 +131,8 @@ discord-bot/
 │       ├── server_card.html
 │       ├── server_config.html
 │       ├── server_no_servers.html
-│       └── wiki_content.html
+│       ├── wiki_content.html
+│       └── admin_content.html
 ├── src/
 │   ├── main.rs              # Entrypoint — parses CLI, loads config.toml, starts bot & web + spawns scheduler & reminder checker
 │   ├── cli.rs               # Clap CLI definition (--config path)
@@ -167,7 +180,7 @@ discord-bot/
 - Parses CLI args via `Cli::parse()`
 - Loads `Settings` from TOML config file (exits with error + hint if not found)
 - Initializes Database (sqlx + SQLite, runs migrations including sessions and extend_commands tables)
-- Populates `Config.owner_ids` from `settings.discord.owner_id`
+- Populates `Config.owner_ids` from `settings.discord.owner_id` and `Config.admin_ids` from `settings.discord.admin_ids`
 - Creates `AppState` with shared `BotState`, `WebState`, `Config`, `Settings`, `db`, and `spam_tracker`
 - Calls `modules::init_modules()` to print startup status
 - Spawns bot in a separate task, then blocks on web server
@@ -176,7 +189,7 @@ discord-bot/
 
 ### 3. `types.rs` — Shared State
 - `AppState` — cloned everywhere, contains:
-  - `bot_state` — `commands_executed` counter, `started_at` timestamp, `bot_guilds: HashSet<String>` (tracked via GuildCreate/GuildDelete events)
+  - `bot_state` — `commands_executed` counter, `started_at` timestamp, `bot_guilds: HashSet<String>`, `guild_info: HashMap<String, GuildInfo>` (name, owner_id, icon — populated via GuildCreate/Ready events)
   - `web_state` — `visits` counter
   - `config` — runtime bot config (prefix, owner_ids, module toggles; in-memory only)
   - `settings` — loaded from `config.toml` (read-only after startup; discord token, OAuth2 creds, web port, DB url)
@@ -187,11 +200,11 @@ discord-bot/
 
 ### 4. `config/mod.rs` — Configuration structs
 - **`Settings`** (from `config.toml`):
-  - `discord`: `token`, `client_id`, `client_secret`, `owner_id` (optional)
+  - `discord`: `token`, `client_id`, `client_secret`, `owner_id` (optional), `admin_ids` (optional vector of user ID strings)
   - `web`: `host` (default: `0.0.0.0`), `port` (default: 3000)
   - `database`: `url` (default: `sqlite:retina.db`)
   - Loaded via `Settings::load("config.toml")` — reads file + deserializes with `toml` + `serde`
-- **`Config`** — runtime bot config: `prefix`, `owner_ids`, `ModulesConfig`. In-memory defaults (no persistence).
+- **`Config`** — runtime bot config: `prefix`, `owner_ids`, `admin_ids`, `ModulesConfig`. In-memory defaults (no persistence).
 - **`GuildConfig`** — per-guild: `guild_id`, `ModulesConfig`, `AutoModConfig`, `WelcomeConfig`. Persisted in SQLite via `Database`.
 - **`AutoModConfig`** — manual `Default`: `enabled: false`, `max_message_length: 2000`, `banned_words: []`, `ban_duration_hours: 24`
 - **`WelcomeConfig`** — per-guild welcome/goodbye: `enabled`, `welcome_channel_id`, `goodbye_channel_id`, `welcome_message`, `goodbye_message`. Stored as JSON in `welcome_config` column.
@@ -203,9 +216,9 @@ discord-bot/
 - Commands are registered globally via `poise::builtins::register_globally()` (slow propagation, ~1hr)
 
 ### 6. `events/mod.rs` — Event Handling
-- `Ready` → sets `started_at` timestamp, populates `bot_guilds` from serenity cache
-- `GuildCreate` → adds guild ID to `bot_guilds`
-- `GuildDelete` → removes guild ID from `bot_guilds`
+- `Ready` → sets `started_at` timestamp, populates `bot_guilds` + `guild_info` from serenity cache
+- `GuildCreate` → adds guild ID + guild info (name, owner_id, icon) to `bot_state`
+- `GuildDelete` → removes guild ID + guild info from `bot_state`
 - `Message` → checks per-guild auto-mod rules, runs moderation, custom commands, XP handler, AFK return check, AFK mention detection
 - `MessageDelete` → logs to `#mod-logs` if logging module enabled
 - `MessageUpdate` → logs edits if logging enabled
@@ -231,12 +244,15 @@ discord-bot/
 - **tickets.rs**: Ticket system with panel, private channels, claim/close/add/remove.
 - **xp.rs**: Message XP with cooldown, level-up roles, leaderboards.
 
-### 8. `web/mod.rs` — Web Dashboard (~1200 lines)
-- Routes: `/`, `/commands`, `/wiki`, `/login`, `/auth/callback`, `/logout`, `/dashboard`, `/server/:guild_id`, `/server/:guild_id/toggle`, `/server/:guild_id/automod`, `/server/:guild_id/welcome`, `/server/:guild_id/custom_command`, `/server/:guild_id/reaction_role`, `/server/:guild_id/xp_config`, `/server/:guild_id/ticket`, `/server/:guild_id/xp_reward`, `/api/stats`, `/api/modules`
+### 8. `web/mod.rs` — Web Dashboard (~1300 lines)
+- Routes: `/`, `/commands`, `/wiki`, `/login`, `/auth/callback`, `/logout`, `/dashboard`, `/server/:guild_id`, `/server/:guild_id/toggle`, `/server/:guild_id/automod`, `/server/:guild_id/welcome`, `/server/:guild_id/custom_command`, `/server/:guild_id/reaction_role`, `/server/:guild_id/xp_config`, `/server/:guild_id/ticket`, `/server/:guild_id/xp_reward`, `/admin`, `/api/stats`, `/api/modules`
 - Template system with compile-time includes
 - OAuth2 flow with DB-persisted sessions (24h expiry)
 - Bot-in-server detection for invite/manage UI
 - Dashboard shows guilds where user has `MANAGE_SERVER` or `ADMINISTRATOR` permission
+- Server config page checks permissions on every access (returns 403 for non-admin members)
+- Bot admins (in `admin_ids`) bypass per-guild permission checks
+- `/admin` route for bot admin panel with live global stats and guild list
 
 ### 9. `database/mod.rs` — SQLite Database (sqlx)
 - Connection pooling (max 5), migrations auto-run on init
@@ -338,6 +354,7 @@ token = "..."              # Required: Discord bot token
 client_id = "..."           # Required: OAuth2 client ID
 client_secret = "..."       # Required: OAuth2 client secret
 owner_id = "..."            # Optional: Discord user ID for admin
+admin_ids = ["..."]         # Optional: Discord user IDs for bot admin panel access
 
 [web]
 host = "0.0.0.0"            # Optional: web dashboard host (default: 0.0.0.0)

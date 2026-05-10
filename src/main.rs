@@ -39,6 +39,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             bot_config.owner_ids.push(id);
         }
     }
+    for id_str in &settings.discord.admin_ids {
+        if let Ok(id) = id_str.parse::<u64>() {
+            bot_config.admin_ids.push(id);
+        }
+    }
 
     println!("Loaded config: modules - moderation:{}, auto_mod:{}, logging:{}",
         bot_config.modules.moderation, bot_config.modules.auto_mod, bot_config.modules.logging);

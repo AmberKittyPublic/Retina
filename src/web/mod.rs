@@ -83,6 +83,7 @@ pub async fn start(state: AppState, host: String, port: u16) -> Result<(), Box<d
         .route("/server/:guild_id/xp_config", post(xp_config_handler))
         .route("/server/:guild_id/ticket", post(ticket_handler))
         .route("/server/:guild_id/xp_reward", post(xp_reward_handler))
+        .route("/admin", get(admin_handler))
         .route("/api/stats", get(api_stats))
         .route("/api/modules", get(api_modules))
         .nest_service("/static", ServeDir::new("static"))
@@ -130,12 +131,18 @@ async fn index_handler(
 
     let user = get_user_from_session(&state, &sessions, &headers, &params).await;
 
-    let content = if let Some(user) = user {
+    let content = if let Some(ref user) = user {
+        let admin_link = if is_user_admin(&user.id, &state).await {
+            r#"<a href="/admin" class="btn">Admin</a>"#.to_string()
+        } else {
+            String::new()
+        };
         include_str!("../../templates/partials/index_logged_in.html")
             .replace("{{USERNAME}}", &user.username)
             .replace("{{GUILD_COUNT}}", &guild_count.to_string())
             .replace("{{CMDS_EXECUTED}}", &cmds_executed.to_string())
             .replace("{{UPTIME}}", &uptime_str)
+            .replace("{{ADMIN_NAV_LINK}}", &admin_link)
     } else {
         include_str!("../../templates/partials/index_anonymous.html")
             .replace("{{GUILD_COUNT}}", &guild_count.to_string())
@@ -274,6 +281,9 @@ async fn dashboard_handler(
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Html<String>, StatusCode> {
     let user = get_user_from_session(&state, &sessions, &headers, &params).await.ok_or(StatusCode::UNAUTHORIZED)?;
+    let admin_link = if is_user_admin(&user.id, &state).await {
+        format!(r#"<a href="/admin?t={token}" class="btn">Admin</a>"#, token = params.get("t").cloned().unwrap_or_default())
+    } else { String::new() };
 
     let admin_guilds: Vec<_> = user.guilds.iter()
         .filter(|g| {
@@ -320,7 +330,8 @@ async fn dashboard_handler(
 
     let content = include_str!("../../templates/partials/dashboard_content.html")
         .replace("{{TOKEN}}", &token)
-        .replace("{{SERVER_CARDS}}", &guilds_html);
+        .replace("{{SERVER_CARDS}}", &guilds_html)
+        .replace("{{ADMIN_NAV_LINK}}", &admin_link);
 
     let template = include_str!("../../templates/dashboard.html");
     Ok(Html(render_page(template, "My Servers - Dashboard", &content)))
@@ -333,8 +344,24 @@ async fn server_dashboard_handler(
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Html<String>, StatusCode> {
     let user = get_user_from_session(&state, &sessions, &headers, &params).await.ok_or(StatusCode::UNAUTHORIZED)?;
+    let is_admin = is_user_admin(&user.id, &state).await;
+    let admin_link = if is_admin {
+        format!(r#"<a href="/admin?t={token}" class="btn">Admin</a>"#, token = params.get("t").cloned().unwrap_or_default())
+    } else { String::new() };
 
-    let guild = user.guilds.iter().find(|g| g.id == guild_id).ok_or(StatusCode::NOT_FOUND)?;
+    let guild = user.guilds.iter().find(|g| g.id == guild_id).ok_or_else(|| {
+        if is_admin { StatusCode::NOT_FOUND } else { StatusCode::FORBIDDEN }
+    })?;
+
+    if !is_admin {
+        let has_perms = guild.owner
+            || guild.permissions.parse::<u64>()
+                .map(|p| (p & 0x20) != 0 || (p & 0x8) != 0)
+                .unwrap_or(false);
+        if !has_perms {
+            return Err(StatusCode::FORBIDDEN);
+        }
+    }
 
     let guild_config = state.db.get_or_create_guild_config(&guild.id).await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -616,6 +643,7 @@ async fn server_dashboard_handler(
     };
 
     content = content.replace("{{XP_REWARDS_LIST}}", &xp_rewards_list);
+    content = content.replace("{{ADMIN_NAV_LINK}}", &admin_link);
 
     let template = include_str!("../../templates/server.html");
     Ok(Html(render_page(template, &format!("{} - Dashboard", guild.name), &content)))
@@ -1055,6 +1083,96 @@ async fn ticket_handler(
     Json(json!({"success": true}))
 }
 
+async fn admin_handler(
+    State((state, sessions)): State<(AppState, SessionStore)>,
+    headers: axum::http::HeaderMap,
+    Query(params): Query<HashMap<String, String>>,
+) -> Result<Html<String>, StatusCode> {
+    let user = get_user_from_session(&state, &sessions, &headers, &params).await.ok_or(StatusCode::UNAUTHORIZED)?;
+    let user_id: u64 = user.id.parse().unwrap_or(0);
+    let is_admin = {
+        let config = state.config.read().await;
+        config.admin_ids.contains(&user_id)
+    };
+    if !is_admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let token = params.get("t").cloned()
+        .filter(|t| !t.is_empty())
+        .or_else(|| get_token_from_headers(&headers))
+        .unwrap_or_default();
+
+    let bot_state = state.bot_state.read().await;
+    let guild_count = bot_state.bot_guilds.len();
+    let cmds_executed = bot_state.commands_executed;
+    let web_state = state.web_state.read().await;
+    let web_visits = web_state.visits;
+    drop(web_state);
+
+    let uptime_str = bot_state.started_at
+        .map(|t| {
+            let d = t.elapsed().unwrap_or_default().as_secs();
+            let days = d / 86400;
+            let hours = (d % 86400) / 3600;
+            let mins = (d % 3600) / 60;
+            let secs = d % 60;
+            if days > 0 { format!("{}d {}h {}m {}s", days, hours, mins, secs) }
+            else if hours > 0 { format!("{}h {}m {}s", hours, mins, secs) }
+            else { format!("{}m {}s", mins, secs) }
+        })
+        .unwrap_or_else(|| "N/A".to_string());
+
+    let guild_info_map = bot_state.guild_info.clone();
+    let guild_ids: Vec<String> = {
+        let mut ids: Vec<String> = bot_state.bot_guilds.iter().cloned().collect();
+        ids.sort();
+        ids
+    };
+    drop(bot_state);
+
+    let guild_list_html = if guild_ids.is_empty() {
+        "<p style='color:#888;'>No guilds connected.</p>".to_string()
+    } else {
+        guild_ids.iter().map(|id| {
+            let info = guild_info_map.get(id);
+            let name = info.map(|i| i.name.as_str()).unwrap_or("Unknown Guild");
+            let owner_id = info.map(|i| i.owner_id.as_str()).unwrap_or("?");
+            let icon_url = info.and_then(|i| i.icon.as_ref())
+                .map(|icon| format!("https://cdn.discordapp.com/icons/{}/{}.png?size=64", id, icon))
+                .unwrap_or_else(|| "https://cdn.discordapp.com/embed/avatars/0.png".to_string());
+            format!(
+                r#"<div style="padding:10px;border-bottom:1px solid #333;display:flex;align-items:center;gap:12px;">
+                    <img src="{icon}" alt="" style="width:32px;height:32px;border-radius:50%;flex-shrink:0;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;">{name}</div>
+                        <div style="font-size:12px;color:#888;">
+                            <code style="color:#7289da;">{id}</code> · Owner: <code>{owner}</code>
+                        </div>
+                    </div>
+                    <a href="/server/{id}?t={token}" class="btn" style="padding:4px 10px;font-size:12px;flex-shrink:0;">Manage</a>
+                </div>"#,
+                id = id,
+                name = name,
+                owner = owner_id,
+                icon = icon_url,
+                token = token,
+            )
+        }).collect::<String>()
+    };
+
+    let content = include_str!("../../templates/partials/admin_content.html")
+        .replace("{{TOKEN}}", &token)
+        .replace("{{GUILD_COUNT}}", &guild_count.to_string())
+        .replace("{{CMDS_EXECUTED}}", &cmds_executed.to_string())
+        .replace("{{UPTIME}}", &uptime_str)
+        .replace("{{WEB_VISITS}}", &web_visits.to_string())
+        .replace("{{GUILD_LIST}}", &guild_list_html);
+
+    let template = include_str!("../../templates/server.html");
+    Ok(Html(render_page(template, "Admin Panel - Retina Bot", &content)))
+}
+
 async fn api_stats(State((state, _)): State<(AppState, SessionStore)>) -> Json<serde_json::Value> {
     let bot_state = state.bot_state.read().await;
     let web_state = state.web_state.read().await;
@@ -1189,4 +1307,10 @@ async fn verify_guild_admin(
     }
 
     Ok(user)
+}
+
+async fn is_user_admin(user_id: &str, state: &AppState) -> bool {
+    let id: u64 = user_id.parse().unwrap_or(0);
+    let config = state.config.read().await;
+    config.admin_ids.contains(&id)
 }
