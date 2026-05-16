@@ -6,7 +6,7 @@
 
 Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord API), **axum** (web server), **sqlx + SQLite** (database), **tokio** (async runtime).
 
-**Current status:** All major Dyno feature categories implemented. **94** slash commands total. Web dashboard for configuration. No outstanding build errors.
+**Current status:** All major Dyno feature categories implemented. **99** slash commands total. Web dashboard for configuration. No outstanding build errors.
 
 ---
 
@@ -51,6 +51,10 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 - Created `templates/partials/admin_content.html`
 - Fixed `server_dashboard_handler` to check guild permissions (MANAGE_GUILD/ADMINISTRATOR) — returns 403 for members without admin privs, bot admins bypass
 - Updated README comprehensively
+- Added 5 truth-or-dare commands (`/truth`, `/dare`, `/wyr`, `/nhie`, `/paranoia`) using `api.truthordarebot.xyz` in `src/commands/fun.rs`
+- Made `/wouldyourather` an alias for `/wyr` (both call shared `wyr_impl` helper with optional `rating` param)
+- Updated `commands_content.html` with the 5 new command entries in the Fun section
+- Updated `wiki_content.html` Fun command count from 24+ → 29+
 
 ### In Progress / Next
 - (nothing currently in progress)
@@ -70,7 +74,7 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 | **Giveaways** | ★ Complete | embed with reaction entry, random winner picker, scheduled draw, startup expiry check, web dashboard list |
 | **Tickets** | ★ Complete | panel with 🎫 reaction, private channel creation, close/claim/add/remove, staff role, web dashboard toggle |
 | **Leveling / XP** | ★ Complete | message XP with cooldown, level-up role rewards, rank/leaderboard/set/add commands, web dashboard toggle |
-| **Fun / Misc** | ★ Complete | 24 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll) + 8 misc commands (avatar, whois, serverinfo, membercount, randomcolor, invite, prefix, emotes) |
+| **Fun / Misc** | ★ Complete | 29 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll, truth, dare, wyr, nhie, paranoia) + 8 misc commands (avatar, whois, serverinfo, membercount, randomcolor, invite, prefix, emotes) |
 | **AFK** | ★ Complete | afk/afk_list commands, mention detection, auto-remove on message |
 | **Self-Assignable Roles** | ★ Complete | addrank/delrank/rank/ranks commands, toggle join/leave |
 | **Reminders** | ★ Complete | background 30s poll loop, remindme command |
@@ -142,7 +146,7 @@ discord-bot/
 │   ├── commands/
 │   │   ├── mod.rs           # Aggregates all slash commands (general, fun, misc, moderation, giveaway, tickets, xp, scheduling, afk, ranks, manager)
 │   │   ├── general.rs       # /ping, /info, /stats
-│   │   ├── fun.rs           # 24 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll)
+│   │   ├── fun.rs           # 29 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll, truth, dare, wyr, nhie, paranoia)
 │   │   └── misc.rs          # 8 misc commands (avatar, whois, serverinfo, membercount, randomcolor, invite, prefix, emotes)
 │   ├── events/mod.rs        # Event handler — Ready, Message, GuildCreate, GuildDelete, MessageDelete, MessageUpdate, GuildMemberAddition/Removal/Update, ChannelCreate/Delete, ReactionAdd/Remove, VoiceStateUpdate (+ AFK checks)
 │   ├── modules/
@@ -211,7 +215,7 @@ discord-bot/
 
 ### 5. `commands/` — Slash Commands
 - **general.rs**: `/ping` (latency), `/info` (commands count + guild count), `/stats` (uptime + commands)
-- **fun.rs**: 24 fun commands using external APIs and static lists
+- **fun.rs**: 29 fun commands using external APIs and static lists
 - **misc.rs**: 8 utility/info commands
 - Commands are registered globally via `poise::builtins::register_globally()` (slow propagation, ~1hr)
 
@@ -340,7 +344,7 @@ discord-bot/
 - **JS**: Client-side JS in `static/dashboard.js`. Served at `/static/dashboard.js` via `ServeDir`.
 - **Build script**: `build.rs` watches `static/style.scss` changes, compiles SCSS to CSS into `$OUT_DIR/style.css`. Only re-runs when SCSS file changes.
 - **Sessions**: OAuth sessions stored in `sessions` SQLite table. Loaded into memory on boot. 24-hour expiry checked on every request via `expires_at` field.
-- **External APIs**: icanhazdadjoke.com, thecatapi.com, dog.ceo, pokeapi.co, api.github.com, numbersapi.com, open-notify.org, wttr.in, mymemory.translated.net, chucknorris.io, meme-api.com, urbandictionary.com
+- **External APIs**: icanhazdadjoke.com, thecatapi.com, dog.ceo, pokeapi.co, api.github.com, numbersapi.com, open-notify.org, wttr.in, mymemory.translated.net, chucknorris.io, meme-api.com, urbandictionary.com, api.truthordarebot.xyz
 
 ---
 

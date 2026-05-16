@@ -6,7 +6,7 @@ pub fn commands() -> Vec<poise::Command<AppState, Error>> {
         rps(), flip(), roll(), dadjoke(), cat(), dog(), pug(), github(), urban(),
         _8ball(), meme(), number(), roast(), yomama(), norris(), pokemon(),
         wouldyourather(), space(), translate(), weather(), remindme(), timer(),
-        choose(), poll(),
+        choose(), poll(), truth(), dare(), wyr(), nhie(), paranoia(),
     ]
 }
 
@@ -320,23 +320,11 @@ pub async fn pokemon(ctx: poise::Context<'_, AppState, Error>, #[description = "
 }
 
 #[poise::command(slash_command)]
-pub async fn wouldyourather(ctx: poise::Context<'_, AppState, Error>) -> Result<(), Error> {
+pub async fn wouldyourather(ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Rating: pg, pg13, or r"] rating: Option<String>,
+) -> Result<(), Error> {
     init_state(&ctx).await;
-    let questions = [
-        "Have the ability to fly or be invisible?",
-        "Live in the past or the future?",
-        "Be able to talk to animals or speak every language?",
-        "Have unlimited pizza for life or unlimited tacos for life?",
-        "Never have to sleep or never have to eat?",
-        "Be famous or be incredibly happy?",
-        "Be able to time travel or read minds?",
-        "Live on the beach or in the mountains?",
-        "Have a rewind button or a pause button on your life?",
-        "Be the funniest person in the room or the smartest?",
-    ];
-    let q = questions[rand::random::<usize>() % questions.len()];
-    ctx.say(format!("🤔 Would you rather... {}", q)).await?;
-    Ok(())
+    wyr_impl(&ctx, rating).await
 }
 
 #[poise::command(slash_command)]
@@ -477,6 +465,120 @@ pub async fn poll(ctx: poise::Context<'_, AppState, Error>,
     let reactions = ["1️⃣", "🇦", "🇧", "🇨", "🇩"];
     for i in 0..options.len() {
         let _ = msg.react(ctx, serenity::ReactionType::Unicode(reactions[i].to_string())).await;
+    }
+    Ok(())
+}
+
+#[poise::command(slash_command)]
+pub async fn truth(ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Rating: pg, pg13, or r"] rating: Option<String>,
+) -> Result<(), Error> {
+    init_state(&ctx).await;
+    let client = reqwest::Client::new();
+    let mut req = client.get("https://api.truthordarebot.xyz/v1/truth");
+    if let Some(ref r) = rating {
+        req = req.query(&[("rating", r)]);
+    }
+    match req.send().await {
+        Ok(r) => {
+            let json: serde_json::Value = r.json().await.unwrap_or_default();
+            let q = json["question"].as_str().unwrap_or("Couldn't fetch a truth question.");
+            let rating_str = json["rating"].as_str().unwrap_or("?");
+            ctx.say(format!("❓ **Truth** ({})\n{}", rating_str, q)).await?;
+        }
+        Err(_) => { ctx.say("Couldn't fetch a truth question.").await?; }
+    }
+    Ok(())
+}
+
+#[poise::command(slash_command)]
+pub async fn dare(ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Rating: pg, pg13, or r"] rating: Option<String>,
+) -> Result<(), Error> {
+    init_state(&ctx).await;
+    let client = reqwest::Client::new();
+    let mut req = client.get("https://api.truthordarebot.xyz/api/dare");
+    if let Some(ref r) = rating {
+        req = req.query(&[("rating", r)]);
+    }
+    match req.send().await {
+        Ok(r) => {
+            let json: serde_json::Value = r.json().await.unwrap_or_default();
+            let q = json["question"].as_str().unwrap_or("Couldn't fetch a dare question.");
+            let rating_str = json["rating"].as_str().unwrap_or("?");
+            ctx.say(format!("💪 **Dare** ({})\n{}", rating_str, q)).await?;
+        }
+        Err(_) => { ctx.say("Couldn't fetch a dare question.").await?; }
+    }
+    Ok(())
+}
+
+async fn wyr_impl(ctx: &poise::Context<'_, AppState, Error>, rating: Option<String>) -> Result<(), Error> {
+    let client = reqwest::Client::new();
+    let mut req = client.get("https://api.truthordarebot.xyz/api/wyr");
+    if let Some(ref r) = rating {
+        req = req.query(&[("rating", r)]);
+    }
+    match req.send().await {
+        Ok(r) => {
+            let json: serde_json::Value = r.json().await.unwrap_or_default();
+            let q = json["question"].as_str().unwrap_or("Couldn't fetch a WYR question.");
+            let rating_str = json["rating"].as_str().unwrap_or("?");
+            ctx.say(format!("🤔 **Would You Rather** ({})\n{}", rating_str, q)).await?;
+        }
+        Err(_) => { ctx.say("Couldn't fetch a WYR question.").await?; }
+    }
+    Ok(())
+}
+
+#[poise::command(slash_command)]
+pub async fn wyr(ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Rating: pg, pg13, or r"] rating: Option<String>,
+) -> Result<(), Error> {
+    init_state(&ctx).await;
+    wyr_impl(&ctx, rating).await
+}
+
+#[poise::command(slash_command)]
+pub async fn nhie(ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Rating: pg, pg13, or r"] rating: Option<String>,
+) -> Result<(), Error> {
+    init_state(&ctx).await;
+    let client = reqwest::Client::new();
+    let mut req = client.get("https://api.truthordarebot.xyz/api/nhie");
+    if let Some(ref r) = rating {
+        req = req.query(&[("rating", r)]);
+    }
+    match req.send().await {
+        Ok(r) => {
+            let json: serde_json::Value = r.json().await.unwrap_or_default();
+            let q = json["question"].as_str().unwrap_or("Couldn't fetch an NHIE question.");
+            let rating_str = json["rating"].as_str().unwrap_or("?");
+            ctx.say(format!("🙊 **Never Have I Ever** ({})\n{}", rating_str, q)).await?;
+        }
+        Err(_) => { ctx.say("Couldn't fetch an NHIE question.").await?; }
+    }
+    Ok(())
+}
+
+#[poise::command(slash_command)]
+pub async fn paranoia(ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Rating: pg, pg13, or r"] rating: Option<String>,
+) -> Result<(), Error> {
+    init_state(&ctx).await;
+    let client = reqwest::Client::new();
+    let mut req = client.get("https://api.truthordarebot.xyz/api/paranoia");
+    if let Some(ref r) = rating {
+        req = req.query(&[("rating", r)]);
+    }
+    match req.send().await {
+        Ok(r) => {
+            let json: serde_json::Value = r.json().await.unwrap_or_default();
+            let q = json["question"].as_str().unwrap_or("Couldn't fetch a paranoia question.");
+            let rating_str = json["rating"].as_str().unwrap_or("?");
+            ctx.say(format!("👀 **Paranoia** ({})\n{}", rating_str, q)).await?;
+        }
+        Err(_) => { ctx.say("Couldn't fetch a paranoia question.").await?; }
     }
     Ok(())
 }
