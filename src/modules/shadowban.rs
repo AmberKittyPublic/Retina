@@ -34,26 +34,18 @@ pub async fn get_or_create_shadowban_role(
             .mentionable(false))
         .await?;
 
-    for (channel_id, channel) in &guild_id.channels(ctx).await? {
-        if channel.kind == ChannelType::Category {
-            continue;
-        }
-        let (allow, deny) = match channel.kind {
-            ChannelType::Voice | ChannelType::Stage => (
-                Permissions::empty(),
-                Permissions::SPEAK | Permissions::STREAM,
-            ),
-            _ => (
-                Permissions::empty(),
-                Permissions::SEND_MESSAGES
-                    | Permissions::ADD_REACTIONS
-                    | Permissions::CREATE_PUBLIC_THREADS
-                    | Permissions::CREATE_PRIVATE_THREADS
-                    | Permissions::SEND_MESSAGES_IN_THREADS,
-            ),
-        };
+    for (channel_id, _channel) in &guild_id.channels(ctx).await? {
+        let deny = Permissions::SEND_MESSAGES
+            | Permissions::ADD_REACTIONS
+            | Permissions::CREATE_PUBLIC_THREADS
+            | Permissions::CREATE_PRIVATE_THREADS
+            | Permissions::SEND_MESSAGES_IN_THREADS
+            | Permissions::SPEAK
+            | Permissions::STREAM
+            | Permissions::USE_SOUNDBOARD
+            | Permissions::USE_EMBEDDED_ACTIVITIES;
         let overwrite = PermissionOverwrite {
-            allow,
+            allow: Permissions::empty(),
             deny,
             kind: PermissionOverwriteType::Role(role.id),
         };
