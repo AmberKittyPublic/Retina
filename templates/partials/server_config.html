@@ -110,7 +110,7 @@
     </div>
     {{REACTION_ROLES_LIST}}
     <details style="margin-top:10px;">
-        <summary style="cursor:pointer;color:#7289da;">Add Reaction Role</summary>
+        <summary style="cursor:pointer;color:var(--md-primary);">Add Reaction Role</summary>
         <div class="form-group">
             <label>Channel ID:</label>
             <input type="text" id="rrChannelId" placeholder="Channel ID" class="rule-input">
@@ -139,7 +139,7 @@
             <span class="slider"></span>
         </label>
     </div>
-    <p style="margin:10px 0;font-size:14px;color:#aaa;">
+    <p style="margin:10px 0;font-size:14px;color:var(--md-on-surface-variant);">
         Triggers with bot prefix (<code>!</code> by default). Commands are written in <strong>Lua</strong>.
         Available API: <code>api.send(channel_id, text)</code>,
         <code>api.reply(text)</code>, <code>api.ban(user_id, reason)</code>, <code>api.kick(user_id)</code>,
@@ -153,7 +153,7 @@
     </p>
     {{CUSTOM_COMMANDS_LIST}}
     <details style="margin-top:10px;">
-        <summary style="cursor:pointer;color:#7289da;">Add New Command</summary>
+        <summary style="cursor:pointer;color:var(--md-primary);">Add New Command</summary>
         <div class="form-group">
             <label>Trigger Name:</label>
             <input type="text" id="newCmdName" placeholder="e.g. greet" class="rule-input">
@@ -167,7 +167,7 @@
 </div>
 <div class="card">
     <h2>Giveaways</h2>
-    <p style="margin:10px 0;font-size:14px;color:#aaa;">
+    <p style="margin:10px 0;font-size:14px;color:var(--md-on-surface-variant);">
         Use <code>/giveaway create</code> in a Discord channel to start a giveaway.
         <br>List of active giveaways in this server:
     </p>
@@ -184,7 +184,7 @@
             <span class="slider"></span>
         </label>
     </div>
-    <p style="margin:10px 0;font-size:14px;color:#aaa;">
+    <p style="margin:10px 0;font-size:14px;color:var(--md-on-surface-variant);">
         Use <code>/ticket setup &lt;category_id&gt;</code> in a Discord channel to create the ticket panel.
         <br>Category ID: <code>{{TICKET_CATEGORY_ID}}</code>
         <br>Staff Role ID: <code>{{TICKET_STAFF_ROLE_ID}}</code>

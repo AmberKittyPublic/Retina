@@ -30,6 +30,8 @@ pub fn commands() -> Vec<poise::Command<AppState, Error>> {
     cmds.extend(crate::modules::ranks::commands());
     // Add manager commands
     cmds.extend(crate::modules::manager::commands());
+    // Add shadowban commands
+    cmds.extend(crate::modules::shadowban::commands());
 
     cmds
 }

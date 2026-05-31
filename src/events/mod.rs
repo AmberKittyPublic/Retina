@@ -172,6 +172,19 @@ pub async fn handle_event(
                 }
             }
         }
+        serenity::FullEvent::InteractionCreate { interaction } => {
+            if let serenity::Interaction::Component(component) = interaction {
+                if component.data.custom_id.starts_with("br_") {
+                    crate::commands::fun::handle_banroulette_component(
+                        ctx,
+                        state,
+                        &component.data.custom_id,
+                        component,
+                    )
+                    .await;
+                }
+            }
+        }
         _ => {}
     }
     Ok(())

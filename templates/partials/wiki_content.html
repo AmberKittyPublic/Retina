@@ -29,7 +29,7 @@
 <div class="card">
     <h2>Modules Overview</h2>
     <table class="cmd-table">
-        <tr><td><strong>Moderation</strong></td><td>Ban, kick, warn, mute (timeout), purge, slowmode, lockdown, softban, voice moderation, case management, mod notes</td></tr>
+        <tr><td><strong>Moderation</strong></td><td>Ban, kick, warn, mute (timeout), purge, slowmode, lockdown, softban, shadowban, voice moderation, case management, mod notes</td></tr>
         <tr><td><strong>Auto-Mod</strong></td><td>Automatic message filtering: spam, excessive caps, links, mass mentions, emote spam, banned words, max length</td></tr>
         <tr><td><strong>Logging</strong></td><td>Logs message edits/deletes, member join/leave, channel changes, voice state updates to <code>#mod-logs</code></td></tr>
         <tr><td><strong>Welcome / Goodbye</strong></td><td>Customizable join/leave messages with <code>{user}</code>, <code>{mention}</code>, <code>{guild}</code> placeholders</td></tr>
@@ -42,7 +42,7 @@
         <tr><td><strong>Self-Assignable Roles</strong></td><td>Let users pick their own roles with join/leave toggle commands</td></tr>
         <tr><td><strong>Manager</strong></td><td>Moderator role management, nickname changes, manual role assignment</td></tr>
         <tr><td><strong>Scheduling</strong></td><td>Temp-ban, temp-mute, and timed announcements (one-time or repeating)</td></tr>
-        <tr><td><strong>Fun</strong></td><td>29+ commands: RPS, coin flip, dice roll, cat/dog/pug pics, memes, Pokémon lookup, weather, translate, 8-ball, truth-or-dare questions (truth/dare/wyr/nhie/paranoia), and more</td></tr>
+        <tr><td><strong>Fun</strong></td><td>30+ commands: RPS, coin flip, dice roll, cat/dog/pug pics, memes, Pokémon lookup, weather, translate, 8-ball, truth-or-dare questions (truth/dare/wyr/nhie/paranoia), banroulette (interactive shadowban game), and more</td></tr>
         <tr><td><strong>Misc / Utility</strong></td><td>Avatar viewer, whois, server info, member count, random color, invite, emoji list</td></tr>
     </table>
 </div>
@@ -127,7 +127,7 @@
         <tr><td><code>message.content</code></td><td>Full message content</td></tr>
         <tr><td><code>args[1]</code>, <code>args[2]</code>, ...</td><td>Command arguments</td></tr>
     </table>
-    <p style="margin-top:10px;font-size:14px;color:#aaa;">A Lua command should return a string to reply with, or use the API functions for more complex actions.</p>
+    <p style="margin-top:10px;font-size:14px;color:var(--md-on-surface-variant);">A Lua command should return a string to reply with, or use the API functions for more complex actions.</p>
 </div>
 
 <div class="card">

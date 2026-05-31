@@ -6,7 +6,7 @@
 
 Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord API), **axum** (web server), **sqlx + SQLite** (database), **tokio** (async runtime).
 
-**Current status:** All major Dyno feature categories implemented. **99** slash commands total. Web dashboard for configuration. No outstanding build errors.
+**Current status:** All major Dyno feature categories implemented. **102** slash commands total. Web dashboard for configuration. No outstanding build errors.
 
 ---
 
@@ -41,20 +41,16 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 - Build compiles with zero errors
 
 ### Done (this session)
-- Added `admin_ids: Vec<u64>` to `Config` and `admin_ids: Vec<String>` to `DiscordSettings` in `config/mod.rs`
-- Added `admin_ids` parsing in `main.rs` from config TOML
-- Added `GuildInfo` struct (name, owner_id, icon) and `guild_info: HashMap<String, GuildInfo>` to `BotState` in `types.rs`
-- Populated `guild_info` in event handlers (`Ready`, `GuildCreate`, `GuildDelete`) in `events/mod.rs`
-- Added `/admin` route + `admin_handler` in `web/mod.rs` — bot admin panel with live stats and guild list with icons/names/owners
-- Added `is_user_admin()` helper to check `config.admin_ids`
-- Added `{{ADMIN_NAV_LINK}}` to nav partials for admin users
-- Created `templates/partials/admin_content.html`
-- Fixed `server_dashboard_handler` to check guild permissions (MANAGE_GUILD/ADMINISTRATOR) — returns 403 for members without admin privs, bot admins bypass
-- Updated README comprehensively
-- Added 5 truth-or-dare commands (`/truth`, `/dare`, `/wyr`, `/nhie`, `/paranoia`) using `api.truthordarebot.xyz` in `src/commands/fun.rs`
-- Made `/wouldyourather` an alias for `/wyr` (both call shared `wyr_impl` helper with optional `rating` param)
-- Updated `commands_content.html` with the 5 new command entries in the Fun section
-- Updated `wiki_content.html` Fun command count from 24+ → 29+
+- Restyled entire web dashboard to Material 3 dark theme (Discord blurple seed) in `static/style.scss`
+- Created `src/modules/shadowban.rs` with `/shadowban` (with `purge` flag), `/shadowunban`, and `get_or_create_shadowban_role()` helper with per-channel permission overwrites
+- Fixed shadowban role overwrites to no longer `allow VIEW_CHANNEL` (was exposing mod-only channels)
+- Added `/banroulette` command in `src/commands/fun.rs` — interactive embed with buttons, continuous play, turn-based multiplayer via `opponent` param
+- Added `BanRouletteGame` struct and `banroulette_games` map to `BotState` in `types.rs`
+- Added `InteractionCreate` handler in `events/mod.rs` for button component interactions (poise 0.6.2 lacks `wait_for_component`)
+- Ban roulette spin chamber randomly picks: nothing (1/6), increase to 50/50 (1/2), or decrease to 1/10
+- Updated `commands_content.html` with `/shadowban`, `/shadowunban`, `/banroulette`
+- Updated `wiki_content.html` shadowban mention and Fun count 29+ → 30+
+- Updated `AGENTS.md`
 
 ### In Progress / Next
 - (nothing currently in progress)
@@ -65,7 +61,7 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 
 | Feature | Status | Notes |
 |---|---|---|
-| **Moderation** (ban/kick/mute/warn/purge/slowmode/lockdown) | ★ Complete | + softban, members, move, voicekick, deafen, vmute, reason, case, notes, clearwarn, delwarn |
+| **Moderation** (ban/kick/mute/warn/purge/slowmode/lockdown) | ★ Complete | + softban, shadowban, members, move, voicekick, deafen, vmute, reason, case, notes, clearwarn, delwarn |
 | **Auto-mod** (spam, caps, links, emotes, mentions, banned words) | ★ Complete | all 7 rule types with 5 action types (delete/warn/timeout/kick/ban) |
 | **Custom Commands** | ★ Complete | Lua-scripted custom commands via !prefix with Discord API bindings |
 | **Reaction Roles** | ★ Complete | emoji-to-role mapping on messages, add/remove on reaction |
@@ -74,7 +70,7 @@ Tech stack: **Rust**, **poise** (Discord slash commands), **serenity** (Discord 
 | **Giveaways** | ★ Complete | embed with reaction entry, random winner picker, scheduled draw, startup expiry check, web dashboard list |
 | **Tickets** | ★ Complete | panel with 🎫 reaction, private channel creation, close/claim/add/remove, staff role, web dashboard toggle |
 | **Leveling / XP** | ★ Complete | message XP with cooldown, level-up role rewards, rank/leaderboard/set/add commands, web dashboard toggle |
-| **Fun / Misc** | ★ Complete | 29 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll, truth, dare, wyr, nhie, paranoia) + 8 misc commands (avatar, whois, serverinfo, membercount, randomcolor, invite, prefix, emotes) |
+| **Fun / Misc** | ★ Complete | 30 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll, truth, dare, wyr, nhie, paranoia, banroulette) + 8 misc commands (avatar, whois, serverinfo, membercount, randomcolor, invite, prefix, emotes) |
 | **AFK** | ★ Complete | afk/afk_list commands, mention detection, auto-remove on message |
 | **Self-Assignable Roles** | ★ Complete | addrank/delrank/rank/ranks commands, toggle join/leave |
 | **Reminders** | ★ Complete | background 30s poll loop, remindme command |
@@ -146,9 +142,9 @@ discord-bot/
 │   ├── commands/
 │   │   ├── mod.rs           # Aggregates all slash commands (general, fun, misc, moderation, giveaway, tickets, xp, scheduling, afk, ranks, manager)
 │   │   ├── general.rs       # /ping, /info, /stats
-│   │   ├── fun.rs           # 29 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll, truth, dare, wyr, nhie, paranoia)
+│   │   ├── fun.rs           # 30 fun commands (rps, flip, roll, dadjoke, cat, dog, pug, github, urban, 8ball, meme, number, roast, yomama, norris, pokemon, wouldyourather, space, translate, weather, remindme, timer, choose, poll, truth, dare, wyr, nhie, paranoia, banroulette)
 │   │   └── misc.rs          # 8 misc commands (avatar, whois, serverinfo, membercount, randomcolor, invite, prefix, emotes)
-│   ├── events/mod.rs        # Event handler — Ready, Message, GuildCreate, GuildDelete, MessageDelete, MessageUpdate, GuildMemberAddition/Removal/Update, ChannelCreate/Delete, ReactionAdd/Remove, VoiceStateUpdate (+ AFK checks)
+│   ├── events/mod.rs        # Event handler — Ready, Message, GuildCreate, GuildDelete, MessageDelete, MessageUpdate, GuildMemberAddition/Removal/Update, ChannelCreate/Delete, ReactionAdd/Remove, VoiceStateUpdate, InteractionCreate (+ AFK checks)
 │   ├── modules/
 │   │   ├── mod.rs           # init_modules() — logs which modules are enabled
 │   │   ├── afk.rs           # afk/afk_list commands, check_afk_mention/check_afk_return event handlers
@@ -162,6 +158,7 @@ discord-bot/
 │   │   │   └── extended.rs  # softban, members, move, voicekick, deafen, vmute, reason, case, notes, clearwarn, delwarn
 │   │   ├── ranks.rs         # addrank/delrank/rank/ranks self-assignable roles
 │   │   ├── reminders.rs     # run_reminder_checker background task (30s poll)
+│   │   ├── shadowban.rs     # shadowban/unban commands + get_or_create_shadowban_role helper
 │   │   ├── scheduling.rs    # tempban, tempmute, scheduled announcements with interval repeats
 │   │   ├── tickets.rs       # /ticket setup/close/claim/add/remove, panel reaction create, permissions
 │   │   └── xp.rs            # /rank /leaderboard /xp set/add/role, message XP handler, level-up roles
@@ -193,7 +190,7 @@ discord-bot/
 
 ### 3. `types.rs` — Shared State
 - `AppState` — cloned everywhere, contains:
-  - `bot_state` — `commands_executed` counter, `started_at` timestamp, `bot_guilds: HashSet<String>`, `guild_info: HashMap<String, GuildInfo>` (name, owner_id, icon — populated via GuildCreate/Ready events)
+  - `bot_state` — `commands_executed` counter, `started_at` timestamp, `bot_guilds: HashSet<String>`, `guild_info: HashMap<String, GuildInfo>` (name, owner_id, icon — populated via GuildCreate/Ready events), `banroulette_games: HashMap<String, BanRouletteGame>`
   - `web_state` — `visits` counter
   - `config` — runtime bot config (prefix, owner_ids, module toggles; in-memory only)
   - `settings` — loaded from `config.toml` (read-only after startup; discord token, OAuth2 creds, web port, DB url)
@@ -215,7 +212,7 @@ discord-bot/
 
 ### 5. `commands/` — Slash Commands
 - **general.rs**: `/ping` (latency), `/info` (commands count + guild count), `/stats` (uptime + commands)
-- **fun.rs**: 29 fun commands using external APIs and static lists
+- **fun.rs**: 30 fun commands using external APIs and static lists
 - **misc.rs**: 8 utility/info commands
 - Commands are registered globally via `poise::builtins::register_globally()` (slow propagation, ~1hr)
 
@@ -233,6 +230,7 @@ discord-bot/
 - `ReactionAdd` → role assignment, giveaway entry, ticket creation
 - `ReactionRemove` → role removal, giveaway removal
 - `VoiceStateUpdate` → logs voice events
+- `InteractionCreate` → handles banroulette button component interactions
 
 ### 7. `modules/` — Feature Modules
 - **auto_mod.rs**: AutoMod struct with `run()` checking all 7 rule types. Dispatches 5 action types. Spam detection uses in-memory `spam_tracker`.
@@ -242,6 +240,7 @@ discord-bot/
 - **afk.rs**: AFK tracking with mention detection and auto-remove on user message.
 - **ranks.rs**: Self-assignable roles via toggle command.
 - **reminders.rs**: Background poll loop checking for due reminders every 30s.
+- **shadowban.rs**: Shadowban/unban commands + permission overwrite helper for role-based silent restriction.
 - **manager.rs**: Moderator role management, nickname changes, role assignment.
 - **scheduling.rs**: tempban/tempmute via scheduled_actions table + scheduled announcements with interval repeats.
 - **giveaway.rs**: Full giveaway lifecycle with reaction entry, random winner, scheduled end.

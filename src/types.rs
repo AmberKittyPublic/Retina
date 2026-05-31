@@ -21,12 +21,21 @@ pub struct GuildInfo {
     pub icon: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct BanRouletteGame {
+    pub players: Vec<u64>,
+    pub current_turn: usize,
+    pub odds_denominator: u8,
+    pub active: bool,
+}
+
 #[derive(Default)]
 pub struct BotState {
     pub commands_executed: u64,
     pub started_at: Option<std::time::SystemTime>,
     pub bot_guilds: HashSet<String>,
     pub guild_info: HashMap<String, GuildInfo>,
+    pub banroulette_games: HashMap<String, BanRouletteGame>,
 }
 
 #[derive(Default)]

@@ -6,7 +6,7 @@ pub fn commands() -> Vec<poise::Command<AppState, Error>> {
         rps(), flip(), roll(), dadjoke(), cat(), dog(), pug(), github(), urban(),
         _8ball(), meme(), number(), roast(), yomama(), norris(), pokemon(),
         wouldyourather(), space(), translate(), weather(), remindme(), timer(),
-        choose(), poll(), truth(), dare(), wyr(), nhie(), paranoia(),
+        choose(), poll(), truth(), dare(), wyr(), nhie(), paranoia(), banroulette(),
     ]
 }
 
@@ -596,6 +596,414 @@ fn parse_duration(s: &str) -> Option<u64> {
     } else {
         s.parse::<u64>().ok()
     }
+}
+
+#[poise::command(slash_command)]
+pub async fn banroulette(
+    ctx: poise::Context<'_, AppState, Error>,
+    #[description = "Opponent to play against (turn-based)"] opponent: Option<serenity::User>,
+) -> Result<(), Error> {
+    init_state(&ctx).await;
+    if ctx.guild_id().is_none() {
+        ctx.say("This command can only be used in a server.").await?;
+        return Ok(());
+    };
+
+    let author = ctx.author();
+    let mut all_players = vec![author.id.get()];
+    let mut desc;
+
+    if let Some(ref opp) = opponent {
+        if opp.id == author.id {
+            ctx.say("You can't play against yourself!").await?;
+            return Ok(());
+        }
+        if opp.bot {
+            ctx.say("You can't play against a bot!").await?;
+            return Ok(());
+        }
+        all_players.push(opp.id.get());
+        let author_name = &author.name;
+        let opp_name = &opp.name;
+        desc = format!(
+            "**{author_name}** vs **{opp_name}**!\n\n**1/6 odds** (default). Use **Spin** to crank it to **50/50**.\n\nIt's **{author_name}**'s turn first!"
+        );
+    } else {
+        desc = String::from(
+            "Russian roulette with a shadowban!\n\n6 chambers, 1 bullet. Keep pulling the trigger until you lose.\nIf you lose, you'll be shadowbanned for **1 minute**.",
+        );
+    }
+
+    let game = crate::types::BanRouletteGame {
+        players: all_players.clone(),
+        current_turn: 0,
+        odds_denominator: 6,
+        active: true,
+    };
+
+    let msg = ctx.send(poise::CreateReply::default()
+        .embed(create_br_embed(&desc, None))
+        .components(br_components(&game))
+    ).await?;
+
+    let msg_id = msg.into_message().await?.id.to_string();
+    {
+        let mut bot_state = ctx.data().bot_state.write().await;
+        bot_state.banroulette_games.insert(msg_id, game);
+    }
+
+    Ok(())
+}
+
+fn br_components(game: &crate::types::BanRouletteGame) -> Vec<serenity::CreateActionRow> {
+    use serenity::builder::{CreateActionRow, CreateButton};
+    if game.players.len() > 1 {
+        vec![CreateActionRow::Buttons(vec![
+            CreateButton::new("br_self")
+                .label("🔫 Shoot Self")
+                .style(serenity::ButtonStyle::Danger),
+            CreateButton::new("br_opponent")
+                .label("🎯 Shoot Opponent")
+                .style(serenity::ButtonStyle::Danger),
+            CreateButton::new("br_spin")
+                .label("🔄 Spin Chamber")
+                .style(serenity::ButtonStyle::Primary),
+            CreateButton::new("br_cancel")
+                .label("✋ Stop")
+                .style(serenity::ButtonStyle::Secondary),
+        ])]
+    } else {
+        vec![CreateActionRow::Buttons(vec![
+            CreateButton::new("br_play")
+                .label("🔫 Pull the Trigger")
+                .style(serenity::ButtonStyle::Danger),
+            CreateButton::new("br_cancel")
+                .label("Cancel")
+                .style(serenity::ButtonStyle::Secondary),
+        ])]
+    }
+}
+
+fn create_br_embed(desc: &str, footer: Option<&str>) -> serenity::CreateEmbed {
+    let mut e = serenity::CreateEmbed::new()
+        .title("🔫 Ban Roulette")
+        .description(desc)
+        .color(serenity::Colour::ORANGE);
+    if let Some(f) = footer {
+        e = e.footer(serenity::CreateEmbedFooter::new(f));
+    }
+    e
+}
+
+pub async fn handle_banroulette_component(
+    ctx: &serenity::Context,
+    state: &AppState,
+    custom_id: &str,
+    interaction: &serenity::ComponentInteraction,
+) {
+    let msg_id = interaction.message.id.to_string();
+    let game = {
+        let mut bot_state = state.bot_state.write().await;
+        bot_state.banroulette_games.get(&msg_id).cloned()
+    };
+    let mut game = match game {
+        Some(g) if g.active => g,
+        _ => {
+            let _ = interaction
+                .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+                    serenity::CreateInteractionResponseMessage::new()
+                        .embed(serenity::CreateEmbed::new()
+                            .title("🔫 Ban Roulette")
+                            .description("This game is no longer active.")
+                            .color(serenity::Colour::DARK_GREY))
+                        .components(vec![]),
+                ))
+                .await;
+            return;
+        }
+    };
+
+    let user_id = interaction.user.id.get();
+    let current_id = game.players[game.current_turn];
+
+    if user_id != current_id {
+        let msg = if game.players.len() > 1 {
+            format!("It's <@{}>'s turn!", current_id)
+        } else {
+            "These buttons aren't for you!".to_string()
+        };
+        let _ = interaction
+            .create_response(&ctx.http, serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content(msg)
+                    .ephemeral(true),
+            ))
+            .await;
+        return;
+    }
+
+    match custom_id {
+        "br_play" => banroulette_play(ctx, state, &mut game, interaction).await,
+        "br_self" => banroulette_shoot(ctx, state, &mut game, interaction, true).await,
+        "br_opponent" => banroulette_shoot(ctx, state, &mut game, interaction, false).await,
+        "br_spin" => banroulette_spin(ctx, state, &mut game, interaction).await,
+        "br_cancel" => banroulette_cancel(ctx, state, &mut game, interaction).await,
+        _ => {}
+    }
+
+    if game.active {
+        let mut bot_state = state.bot_state.write().await;
+        bot_state.banroulette_games.insert(msg_id, game);
+    } else {
+        let mut bot_state = state.bot_state.write().await;
+        bot_state.banroulette_games.remove(&msg_id);
+    }
+}
+
+async fn apply_shadowban(
+    ctx: &serenity::Context,
+    guild_id: serenity::GuildId,
+    target_id: serenity::UserId,
+) {
+    let role_id = get_or_create_sb_role_serenity(ctx, guild_id).await;
+    if let Some(role_id) = role_id {
+        if let Ok(member) = guild_id.member(&ctx.http, target_id).await {
+            if !member.roles.contains(&role_id) {
+                let _ = member.add_role(&ctx.http, role_id).await;
+            }
+        }
+        let http = ctx.http.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
+            if let Ok(member) = guild_id.member(&http, target_id).await {
+                let _ = member.remove_role(&http, role_id).await;
+            }
+        });
+    }
+}
+
+async fn banroulette_play(
+    ctx: &serenity::Context,
+    _state: &AppState,
+    game: &mut crate::types::BanRouletteGame,
+    interaction: &serenity::ComponentInteraction,
+) {
+    let guild_id = match interaction.guild_id {
+        Some(id) => id,
+        None => return,
+    };
+    let user_id = serenity::UserId::new(game.players[game.current_turn]);
+    let player_name = &interaction.user.name;
+
+    let lose = rand::random::<u8>() % 6 == 0;
+    if lose {
+        game.active = false;
+        apply_shadowban(ctx, guild_id, user_id).await;
+
+        let desc = format!("**BANG!** {player_name} lost and has been shadowbanned for **1 minute**.");
+        let _ = interaction
+            .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(create_br_embed(&desc, None).color(serenity::Colour::RED))
+                    .components(vec![]),
+            ))
+            .await;
+    } else {
+        let desc = format!("**Click!** {player_name} is safe. Try again!");
+        let _ = interaction
+            .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(create_br_embed(&desc, Some("Keep pulling if you dare...")).color(serenity::Colour::DARK_GREEN))
+                    .components(br_components(game)),
+            ))
+            .await;
+    }
+}
+
+async fn banroulette_shoot(
+    ctx: &serenity::Context,
+    _state: &AppState,
+    game: &mut crate::types::BanRouletteGame,
+    interaction: &serenity::ComponentInteraction,
+    shoot_self: bool,
+) {
+    let guild_id = match interaction.guild_id {
+        Some(id) => id,
+        None => return,
+    };
+    let shooter_id = serenity::UserId::new(game.players[game.current_turn]);
+    let target_idx = if shoot_self {
+        game.current_turn
+    } else {
+        (game.current_turn + 1) % game.players.len()
+    };
+    let target_id = serenity::UserId::new(game.players[target_idx]);
+    let player_name = &interaction.user.name;
+    let target_name = if shoot_self {
+        player_name.clone()
+    } else {
+        let guild = ctx.cache.guild(guild_id);
+        let member = guild.and_then(|g| g.members.get(&target_id).cloned());
+        member
+            .as_ref()
+            .map(|m| m.display_name().to_string())
+            .unwrap_or_else(|| "opponent".to_string())
+    };
+
+    let odds = game.odds_denominator;
+    let lose = rand::random::<u8>() % odds == 0;
+    game.odds_denominator = 6;
+
+    if lose {
+        game.active = false;
+        apply_shadowban(ctx, guild_id, target_id).await;
+
+        let verb = if shoot_self { "lost" } else { "shot" };
+        let desc = format!(
+            "**BANG!** {target_name} {verb} and has been shadowbanned for **1 minute**."
+        );
+        let _ = interaction
+            .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(create_br_embed(&desc, None).color(serenity::Colour::RED))
+                    .components(vec![]),
+            ))
+            .await;
+    } else {
+        game.current_turn = (game.current_turn + 1) % game.players.len();
+        let next_id = game.players[game.current_turn];
+        let desc = format!(
+            "**Click!** {player_name} pulled the trigger on {target_name} and got lucky."
+        );
+        let _ = interaction
+            .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(
+                        create_br_embed(
+                            &desc,
+                            Some(&format!("It's <@{}>'s turn. (odds reset to 1/6)", next_id)),
+                        )
+                        .color(serenity::Colour::DARK_GREEN),
+                    )
+                    .components(br_components(game)),
+            ))
+            .await;
+    }
+}
+
+async fn banroulette_spin(
+    ctx: &serenity::Context,
+    _state: &AppState,
+    game: &mut crate::types::BanRouletteGame,
+    interaction: &serenity::ComponentInteraction,
+) {
+    let outcome = rand::random::<u8>() % 3;
+    let (new_odds, outcome_desc) = match outcome {
+        0 => (6, "Nothing changed. Odds stay at **1/6**.".to_string()),
+        1 => (2, "Odds increased to **50/50**! 🔥".to_string()),
+        _ => (10, "Odds decreased to **1/10**! 😅".to_string()),
+    };
+
+    game.odds_denominator = new_odds;
+    game.current_turn = (game.current_turn + 1) % game.players.len();
+    let next_id = game.players[game.current_turn];
+    let player_name = &interaction.user.name;
+
+    let desc = format!("**{player_name}** spun the chamber!\n{outcome_desc}");
+    let _ = interaction
+        .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(
+                    create_br_embed(
+                        &desc,
+                        Some(&format!("It's <@{}>'s turn!", next_id)),
+                    )
+                    .color(serenity::Colour::PURPLE),
+                )
+                .components(br_components(game)),
+        ))
+        .await;
+}
+
+async fn banroulette_cancel(
+    ctx: &serenity::Context,
+    _state: &AppState,
+    game: &mut crate::types::BanRouletteGame,
+    interaction: &serenity::ComponentInteraction,
+) {
+    game.active = false;
+    let _ = interaction
+        .create_response(&ctx.http, serenity::CreateInteractionResponse::UpdateMessage(
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(serenity::CreateEmbed::new()
+                    .title("Ban Roulette")
+                    .description("Cancelled. 🫡")
+                    .color(serenity::Colour::DARK_GREY))
+                .components(vec![]),
+        ))
+        .await;
+}
+
+async fn get_or_create_sb_role_serenity(
+    ctx: &serenity::Context,
+    guild_id: serenity::GuildId,
+) -> Option<serenity::RoleId> {
+    use serenity::builder::EditRole;
+    use serenity::model::channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType};
+    use serenity::model::Permissions;
+
+    let existing = ctx.cache.guild(guild_id).and_then(|g| {
+        g.roles
+            .values()
+            .find(|r| r.name == "Shadow Banned")
+            .map(|r| r.id)
+    });
+    if let Some(role_id) = existing {
+        return Some(role_id);
+    }
+
+    let role = guild_id
+        .create_role(
+            &ctx.http,
+            EditRole::new()
+                .name("Shadow Banned")
+                .permissions(Permissions::empty())
+                .colour(serenity::Colour::from_rgb(30, 30, 30))
+                .hoist(false)
+                .mentionable(false),
+        )
+        .await
+        .ok()?;
+
+    if let Ok(channels) = guild_id.channels(&ctx.http).await {
+        for (channel_id, channel) in &channels {
+            if channel.kind == ChannelType::Category {
+                continue;
+            }
+            let (allow, deny) = match channel.kind {
+                ChannelType::Voice | ChannelType::Stage => (
+                    Permissions::empty(),
+                    Permissions::SPEAK | Permissions::STREAM,
+                ),
+                _ => (
+                    Permissions::empty(),
+                    Permissions::SEND_MESSAGES
+                        | Permissions::ADD_REACTIONS
+                        | Permissions::CREATE_PUBLIC_THREADS
+                        | Permissions::CREATE_PRIVATE_THREADS
+                        | Permissions::SEND_MESSAGES_IN_THREADS,
+                ),
+            };
+            let overwrite = PermissionOverwrite {
+                allow,
+                deny,
+                kind: PermissionOverwriteType::Role(role.id),
+            };
+            let _ = channel_id.create_permission(&ctx.http, overwrite).await;
+        }
+    }
+
+    Some(role.id)
 }
 
 fn humantime_secs(secs: u64) -> String {

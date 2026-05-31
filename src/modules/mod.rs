@@ -8,6 +8,7 @@ pub mod moderation;
 pub mod ranks;
 pub mod reminders;
 pub mod scheduling;
+pub mod shadowban;
 pub mod tickets;
 pub mod xp;
 
