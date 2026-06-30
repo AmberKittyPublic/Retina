@@ -1,0 +1,198 @@
+<div class="header">
+    <h1>Retina Bot Wiki</h1>
+</div>
+<div class="nav">
+    <a href="/" class="btn">Home</a>
+    <a href="/commands" class="btn">Commands</a>
+    <a href="/wiki" class="btn">Wiki</a>
+    <a href="/dashboard" class="btn">My Servers</a>
+    <a href="/logout" class="btn btn-red">Logout</a>
+</div>
+
+<div class="card">
+    <h2>What is Retina?</h2>
+    <p>Retina is a full-featured Discord bot inspired by Dyno. It provides moderation, auto-moderation, logging, giveaways, tickets, leveling/XP, reaction roles, custom Lua commands, welcome/goodbye messages, AFK tracking, self-assignable roles, scheduling, and more — all configurable via the web dashboard.</p>
+</div>
+
+<div class="card">
+    <h2>Quick Start</h2>
+    <ol style="margin-left:20px;line-height:1.8;">
+        <li><strong>Invite the bot</strong> — Use the <strong>Invite</strong> button on the dashboard for servers that don't have the bot yet.</li>
+        <li><strong>Open the Dashboard</strong> — Visit the bot's web dashboard and login with Discord.</li>
+        <li><strong>Select a Server</strong> — Choose a server you manage from <strong>My Servers</strong>.</li>
+        <li><strong>Enable Modules</strong> — Toggle modules on/off using the switches on the server config page.</li>
+        <li><strong>Configure Auto-Mod</strong> — Set up spam, caps, links, mentions, emote, and banned word filters with custom actions (delete/warn/timeout/kick/ban).</li>
+        <li><strong>Set Up Logging</strong> — Create a channel named <code>#mod-logs</code> for moderation and event logs.</li>
+    </ol>
+</div>
+
+<div class="card">
+    <h2>Modules Overview</h2>
+    <table class="cmd-table">
+        <tr><td><strong>Moderation</strong></td><td>Ban, kick, warn, mute (timeout), purge, slowmode, lockdown, softban, shadowban, voice moderation, case management, mod notes</td></tr>
+        <tr><td><strong>Auto-Mod</strong></td><td>Automatic message filtering: spam, excessive caps, links, mass mentions, emote spam, banned words, max length</td></tr>
+        <tr><td><strong>Logging</strong></td><td>Logs message edits/deletes, member join/leave, channel changes, voice state updates to <code>#mod-logs</code></td></tr>
+        <tr><td><strong>Welcome / Goodbye</strong></td><td>Customizable join/leave messages with <code>{user}</code>, <code>{mention}</code>, <code>{guild}</code> placeholders</td></tr>
+        <tr><td><strong>Custom Commands</strong></td><td>Lua-scripted commands triggered by <code>!commandname</code>. Full Discord API bindings available.</td></tr>
+        <tr><td><strong>Reaction Roles</strong></td><td>Assign and remove roles when users react to a message</td></tr>
+        <tr><td><strong>Giveaways</strong></td><td>Create giveaways with reaction entry, random winner selection, and scheduled end times</td></tr>
+        <tr><td><strong>Tickets</strong></td><td>Reaction-based ticket system with private channels, claim/close/add/remove</td></tr>
+        <tr><td><strong>Leveling / XP</strong></td><td>Earn XP by chatting, level up, and receive role rewards</td></tr>
+        <tr><td><strong>AFK</strong></td><td>AFK status with automatic mention notification and auto-remove on return</td></tr>
+        <tr><td><strong>Self-Assignable Roles</strong></td><td>Let users pick their own roles with join/leave toggle commands</td></tr>
+        <tr><td><strong>Manager</strong></td><td>Moderator role management, nickname changes, manual role assignment</td></tr>
+        <tr><td><strong>Scheduling</strong></td><td>Temp-ban, temp-mute, and timed announcements (one-time or repeating)</td></tr>
+        <tr><td><strong>Fun</strong></td><td>30+ commands: RPS, coin flip, dice roll, cat/dog/pug pics, memes, Pokémon lookup, weather, translate, 8-ball, truth-or-dare questions (truth/dare/wyr/nhie/paranoia), banroulette (interactive shadowban game), and more</td></tr>
+        <tr><td><strong>Misc / Utility</strong></td><td>Avatar viewer, whois, server info, member count, random color, invite, emoji list</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Moderation & Extended Moderation</h2>
+    <p>Retina offers full moderation capabilities. Commands require the appropriate Discord permissions (shown in the commands page). Warning data is stored in the database and can be viewed with <code>/warnings</code>.</p>
+    <p><strong>Extended features:</strong></p>
+    <ul style="margin-left:20px;line-height:1.8;">
+        <li><strong>Softban</strong> — Ban a user and immediately unban to clear their recent messages</li>
+        <li><strong>Voice moderation</strong> — Move, disconnect, deafen, and server-mute users in voice channels</li>
+        <li><strong>Case management</strong> — View individual warning cases with <code>/case</code> and edit reasons with <code>/reason</code></li>
+        <li><strong>Mod notes</strong> — Attach notes to users with <code>/notes add</code> for internal reference</li>
+        <li><strong>Warning management</strong> — Clear all warnings or delete individual ones</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>Auto-Mod Configuration</h2>
+    <p>Auto-mod supports 7 rule types, each with 5 possible actions. Configure via the web dashboard under each server's settings.</p>
+    <table class="cmd-table">
+        <tr><td><strong>Spam Detection</strong></td><td>Triggers when a user sends N messages within M seconds</td></tr>
+        <tr><td><strong>Excessive Caps</strong></td><td>Triggers when a message exceeds N% capital letters</td></tr>
+        <tr><td><strong>Link Detection</strong></td><td>Blocks messages containing URLs</td></tr>
+        <tr><td><strong>Mass Mentions</strong></td><td>Triggers when a message contains N+ mentions</td></tr>
+        <tr><td><strong>Emote Spam</strong></td><td>Triggers when a message contains N+ custom emotes</td></tr>
+        <tr><td><strong>Banned Words</strong></td><td>Blocks messages containing specified words or phrases</td></tr>
+        <tr><td><strong>Max Message Length</strong></td><td>Blocks messages exceeding N characters</td></tr>
+    </table>
+    <p><strong>Actions:</strong> Delete message, Warn user, Timeout (with configurable duration), Kick, or Ban.</p>
+    <p>Channel and role whitelists/blacklists let you exempt specific channels or roles from auto-mod filtering.</p>
+</div>
+
+<div class="card">
+    <h2>Logging</h2>
+    <p>When enabled, Retina sends detailed logs to the <code>#mod-logs</code> channel. The following events are tracked:</p>
+    <ul style="margin-left:20px;line-height:1.8;">
+        <li>Message edits and deletions</li>
+        <li>Member joins, leaves, and role changes</li>
+        <li>Channel creation and deletion</li>
+        <li>Voice state changes (join, leave, move)</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>Welcome / Goodbye</h2>
+    <p>Configure customizable join and leave messages via the web dashboard. Available placeholders:</p>
+    <table class="cmd-table">
+        <tr><td><code>{user}</code></td><td>User's display name</td></tr>
+        <tr><td><code>{mention}</code></td><td>User mention (<code>@user</code>)</td></tr>
+        <tr><td><code>{guild}</code></td><td>Server name</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Custom Commands (Lua)</h2>
+    <p>Custom commands use the <code>!</code> prefix and are powered by Lua scripting. Here's the available API:</p>
+    <table class="cmd-table">
+        <tr><td><code>api.send(channel_id, text)</code></td><td>Send a message to a channel</td></tr>
+        <tr><td><code>api.reply(text)</code></td><td>Reply in the same channel</td></tr>
+        <tr><td><code>api.ban(user_id, reason)</code></td><td>Ban a user</td></tr>
+        <tr><td><code>api.kick(user_id)</code></td><td>Kick a user</td></tr>
+        <tr><td><code>api.timeout(user_id, minutes)</code></td><td>Timeout/mute a user (max 40320 min)</td></tr>
+        <tr><td><code>api.warn(user_id, reason)</code></td><td>Add a warning to a user</td></tr>
+        <tr><td><code>api.add_role(user_id, role_id)</code></td><td>Add a role to a user</td></tr>
+        <tr><td><code>api.remove_role(user_id, role_id)</code></td><td>Remove a role from a user</td></tr>
+        <tr><td><code>api.has_role(role_id)</code></td><td>Check if the command author has a role</td></tr>
+        <tr><td><code>api.embed(title, description, color)</code></td><td>Send an embed (color is decimal)</td></tr>
+        <tr><td><code>api.embed_to(channel_id, title, description, color)</code></td><td>Send an embed to a specific channel</td></tr>
+        <tr><td><code>api.react(emoji)</code></td><td>React to the command message</td></tr>
+        <tr><td><code>api.add_reaction(channel_id, message_id, emoji)</code></td><td>React to any message</td></tr>
+        <tr><td><code>api.delete()</code></td><td>Delete the command message</td></tr>
+        <tr><td><code>api.delete_message(channel_id, message_id)</code></td><td>Delete any message</td></tr>
+        <tr><td><code>api.edit(content)</code></td><td>Edit the bot's reply message</td></tr>
+        <tr><td><code>message.author_id</code></td><td>Author's Discord ID</td></tr>
+        <tr><td><code>message.author_name</code></td><td>Author's username</td></tr>
+        <tr><td><code>message.author_mention</code></td><td>Author's mention string</td></tr>
+        <tr><td><code>message.channel_id</code></td><td>Channel ID</td></tr>
+        <tr><td><code>message.channel_name</code></td><td>Channel name</td></tr>
+        <tr><td><code>message.guild_id</code></td><td>Guild/server ID</td></tr>
+        <tr><td><code>message.guild_name</code></td><td>Guild/server name</td></tr>
+        <tr><td><code>message.content</code></td><td>Full message content</td></tr>
+        <tr><td><code>args[1]</code>, <code>args[2]</code>, ...</td><td>Command arguments</td></tr>
+    </table>
+    <p style="margin-top:10px;font-size:14px;color:var(--md-on-surface-variant);">A Lua command should return a string to reply with, or use the API functions for more complex actions.</p>
+</div>
+
+<div class="card">
+    <h2>Reaction Roles</h2>
+    <p>Configure reaction roles via the web dashboard. When a user reacts to a configured message with the specified emoji, they are automatically assigned the linked role. Removing the reaction removes the role.</p>
+    <p>To set up: find a message in your server, note its channel ID and message ID, then add the reaction role mapping in the dashboard with the emoji and role ID.</p>
+</div>
+
+<div class="card">
+    <h2>Giveaways</h2>
+    <p>Create giveaways with <code>/giveaway create</code>. Users enter by reacting with 🎉. At the end of the duration, a random winner is selected. Configurable winner count and manual rerolling supported.</p>
+    <p>Giveaways persist across bot restarts — any expired giveaways are resolved on startup.</p>
+</div>
+
+<div class="card">
+    <h2>Tickets</h2>
+    <p>Set up a ticket system using <code>/ticket setup</code> with a category ID (and optional staff role). A panel message with 🎫 reaction is created. Users react to open a private ticket channel where they can discuss with staff.</p>
+    <p><strong>Features:</strong></p>
+    <ul style="margin-left:20px;line-height:1.8;">
+        <li>Staff can claim, close, and reopen tickets</li>
+        <li>Add or remove users from ticket channels</li>
+        <li>Ticket status tracked in database (open/claimed/closed)</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>Leveling / XP</h2>
+    <p>Users earn XP by sending messages (configurable per-message XP, cooldown, and minimum character count). Level is calculated as <code>sqrt(xp / 50)</code>.</p>
+    <p><strong>Features:</strong></p>
+    <ul style="margin-left:20px;line-height:1.8;">
+        <li>View your rank and level with <code>/rank</code></li>
+        <li>Top 10 leaderboard with <code>/leaderboard</code></li>
+        <li>Configure XP rate, cooldown, and min chars via the web dashboard</li>
+        <li>Assign role rewards at specific levels</li>
+        <li>Admins can manually set or add XP</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>AFK</h2>
+    <p>Set your AFK status with <code>/afk [message]</code>. When someone mentions you while you're AFK, they'll be notified of your status. When you return and send a message, your AFK is automatically removed.</p>
+    <p>View all AFK users with <code>/afk-list</code>.</p>
+</div>
+
+<div class="card">
+    <h2>Self-Assignable Roles</h2>
+    <p>Allow users to pick their own roles. Admins create ranks with <code>/addrank</code> specifying a name and role. Users can then join or leave ranks with <code>/rank &lt;name&gt;</code> (toggles on/off).</p>
+</div>
+
+<div class="card">
+    <h2>Manager</h2>
+    <p>Server management utilities:</p>
+    <ul style="margin-left:20px;line-height:1.8;">
+        <li><strong>Moderator Roles</strong> — Designate specific roles as moderators (<code>/addmod</code>, <code>/delmod</code>, <code>/listmods</code>)</li>
+        <li><strong>Nickname Management</strong> — Change or reset user nicknames (<code>/nick</code>)</li>
+        <li><strong>Role Assignment</strong> — Add or remove roles from users (<code>/addrole</code>, <code>/delrole</code>)</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>Scheduling</h2>
+    <p>Schedule moderation actions and announcements:</p>
+    <ul style="margin-left:20px;line-height:1.8;">
+        <li><strong>Temp-ban</strong> — Ban a user for a set duration, automatically unbanned afterward</li>
+        <li><strong>Temp-mute</strong> — Mute a user for a set duration</li>
+        <li><strong>Scheduled announcements</strong> — Send one-time or repeating announcements to a channel at a specified date/time</li>
+    </ul>
+</div>

@@ -1,0 +1,217 @@
+<div class="header">
+    <h1>Commands</h1>
+</div>
+<div class="nav">
+    <a href="/" class="btn">Home</a>
+    <a href="/commands" class="btn">Commands</a>
+    <a href="/wiki" class="btn">Wiki</a>
+    <a href="/dashboard" class="btn">My Servers</a>
+    <a href="/logout" class="btn btn-red">Logout</a>
+</div>
+
+<div class="tabs" id="cmdTabs">
+    <button class="tab active" data-tab="all">All</button>
+    <button class="tab" data-tab="general">General</button>
+    <button class="tab" data-tab="moderation">Moderation</button>
+    <button class="tab" data-tab="extmod">Extended Mod</button>
+    <button class="tab" data-tab="fun">Fun</button>
+    <button class="tab" data-tab="misc">Misc</button>
+    <button class="tab" data-tab="afk">AFK</button>
+    <button class="tab" data-tab="roles">Roles</button>
+    <button class="tab" data-tab="manager">Manager</button>
+    <button class="tab" data-tab="scheduling">Scheduling</button>
+    <button class="tab" data-tab="giveaways">Giveaways</button>
+    <button class="tab" data-tab="tickets">Tickets</button>
+    <button class="tab" data-tab="xp">Leveling / XP</button>
+</div>
+
+<div id="tab-general" class="tab-content active">
+<div class="card">
+    <h2>General</h2>
+    <table class="cmd-table">
+        <tr><td><code>/ping</code></td><td>Check the bot's WebSocket latency</td><td>None</td></tr>
+        <tr><td><code>/info</code></td><td>Show bot stats (commands executed, guild count)</td><td>None</td></tr>
+        <tr><td><code>/stats</code></td><td>Show detailed bot statistics and uptime</td><td>None</td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-moderation" class="tab-content">
+<div class="card">
+    <h2>Moderation</h2>
+    <table class="cmd-table">
+        <tr><td><code>/ban &lt;user&gt; [reason]</code></td><td>Permanently ban a user</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+        <tr><td><code>/kick &lt;user&gt; [reason]</code></td><td>Kick a user</td><td><span class="perm">KICK_MEMBERS</span></td></tr>
+        <tr><td><code>/warn &lt;user&gt; &lt;reason&gt;</code></td><td>Warn a user (stored in database)</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/warnings &lt;user&gt;</code></td><td>View a user's warning history</td><td>None</td></tr>
+        <tr><td><code>/mute &lt;user&gt; &lt;minutes&gt; [reason]</code></td><td>Timeout a user (max 28 days)</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/purge &lt;count&gt;</code></td><td>Bulk delete messages (2–100)</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+        <tr><td><code>/slowmode &lt;seconds&gt;</code></td><td>Set channel slowmode (0 to disable, max 21600)</td><td><span class="perm">MANAGE_CHANNELS</span></td></tr>
+        <tr><td><code>/lockdown &lt;lock|unlock&gt;</code></td><td>Lock or unlock the current channel</td><td><span class="perm">MANAGE_CHANNELS</span></td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-extmod" class="tab-content">
+<div class="card">
+    <h2>Extended Moderation</h2>
+    <table class="cmd-table">
+        <tr><td><code>/softban &lt;user&gt; [reason]</code></td><td>Ban then immediately unban to clear messages</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+        <tr><td><code>/members</code></td><td>Show member statistics (total, humans, bots)</td><td>None</td></tr>
+        <tr><td><code>/move &lt;user&gt; &lt;channel&gt;</code></td><td>Move a user to another voice channel</td><td><span class="perm">MOVE_MEMBERS</span></td></tr>
+        <tr><td><code>/voicekick &lt;user&gt;</code></td><td>Disconnect a user from voice</td><td><span class="perm">MOVE_MEMBERS</span></td></tr>
+        <tr><td><code>/deafen &lt;user&gt; [deaf]</code></td><td>Deafen or undeafen a user in voice</td><td><span class="perm">DEAFEN_MEMBERS</span></td></tr>
+        <tr><td><code>/vmute &lt;user&gt; [mute]</code></td><td>Server mute or unmute a user in voice</td><td><span class="perm">MUTE_MEMBERS</span></td></tr>
+        <tr><td><code>/reason &lt;warning_id&gt; &lt;new_reason&gt;</code></td><td>Edit a warning's reason</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/case &lt;warning_id&gt;</code></td><td>View a specific warning case details</td><td>None</td></tr>
+        <tr><td><code>/notes add &lt;user&gt; &lt;content&gt;</code></td><td>Add a note to a user</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/notes list &lt;user&gt;</code></td><td>List notes for a user</td><td>None</td></tr>
+        <tr><td><code>/notes delete &lt;note_id&gt;</code></td><td>Delete a moderator note</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/notes edit &lt;note_id&gt; &lt;content&gt;</code></td><td>Edit a moderator note</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/clearwarn &lt;user&gt;</code></td><td>Clear all warnings for a user</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/delwarn &lt;warning_id&gt;</code></td><td>Delete a specific warning</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/shadowban &lt;user&gt; [reason] [purge]</code></td><td>Shadowban a user (silent restriction)</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+        <tr><td><code>/shadowunban &lt;user&gt; [reason]</code></td><td>Remove a shadowban from a user</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-fun" class="tab-content">
+<div class="card">
+    <h2>Fun</h2>
+    <table class="cmd-table">
+        <tr><td><code>/rps &lt;choice&gt;</code></td><td>Play rock-paper-scissors</td><td>None</td></tr>
+        <tr><td><code>/flip</code></td><td>Flip a coin</td><td>None</td></tr>
+        <tr><td><code>/roll [max]</code></td><td>Roll a random number (default 1-100)</td><td>None</td></tr>
+        <tr><td><code>/dadjoke</code></td><td>Get a random dad joke</td><td>None</td></tr>
+        <tr><td><code>/cat</code></td><td>Get a random cat picture</td><td>None</td></tr>
+        <tr><td><code>/dog</code></td><td>Get a random dog picture</td><td>None</td></tr>
+        <tr><td><code>/pug</code></td><td>Get a random pug picture</td><td>None</td></tr>
+        <tr><td><code>/github &lt;repo&gt;</code></td><td>Show GitHub repository info</td><td>None</td></tr>
+        <tr><td><code>/urban &lt;term&gt;</code></td><td>Look up a term on Urban Dictionary</td><td>None</td></tr>
+        <tr><td><code>/8ball &lt;question&gt;</code></td><td>Ask the magic 8-ball a question</td><td>None</td></tr>
+        <tr><td><code>/meme</code></td><td>Get a random meme from Reddit</td><td>None</td></tr>
+        <tr><td><code>/number [number]</code></td><td>Get a random number fact</td><td>None</td></tr>
+        <tr><td><code>/roast</code></td><td>Get roasted</td><td>None</td></tr>
+        <tr><td><code>/yomama</code></td><td>Get a yo mama joke</td><td>None</td></tr>
+        <tr><td><code>/norris</code></td><td>Get a Chuck Norris fact</td><td>None</td></tr>
+        <tr><td><code>/pokemon &lt;name&gt;</code></td><td>Look up a Pokémon by name or ID</td><td>None</td></tr>
+        <tr><td><code>/wouldyourather</code></td><td>Get a would-you-rather question</td><td>None</td></tr>
+        <tr><td><code>/truth [rating]</code></td><td>Get a random truth question</td><td>None</td></tr>
+        <tr><td><code>/dare [rating]</code></td><td>Get a random dare question</td><td>None</td></tr>
+        <tr><td><code>/wyr [rating]</code></td><td>Get a would-you-rather question (from API)</td><td>None</td></tr>
+        <tr><td><code>/nhie [rating]</code></td><td>Get a never-have-I-ever question</td><td>None</td></tr>
+        <tr><td><code>/paranoia [rating]</code></td><td>Get a paranoia question</td><td>None</td></tr>
+        <tr><td><code>/space</code></td><td>See who's currently in space</td><td>None</td></tr>
+        <tr><td><code>/translate &lt;text&gt; &lt;lang&gt;</code></td><td>Translate text to another language</td><td>None</td></tr>
+        <tr><td><code>/weather &lt;city&gt;</code></td><td>Check weather for a city</td><td>None</td></tr>
+        <tr><td><code>/remindme &lt;duration&gt; [message]</code></td><td>Set a personal reminder</td><td>None</td></tr>
+        <tr><td><code>/timer &lt;duration&gt;</code></td><td>Set a countdown timer</td><td>None</td></tr>
+        <tr><td><code>/choose &lt;options&gt;</code></td><td>Choose between options (space-separated)</td><td>None</td></tr>
+        <tr><td><code>/poll &lt;question&gt; &lt;opt1&gt; [opt2] [opt3] [opt4]</code></td><td>Create a reaction poll</td><td>None</td></tr>
+        <tr><td><code>/banroulette [opponent]</code></td><td>Play Russian roulette with a 1-minute shadowban (turn-based with opponent)</td><td>None</td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-misc" class="tab-content">
+<div class="card">
+    <h2>Misc / Utility</h2>
+    <table class="cmd-table">
+        <tr><td><code>/avatar [user]</code></td><td>Show a user's avatar</td><td>None</td></tr>
+        <tr><td><code>/whois [user]</code></td><td>Show user information (ID, created, joined, roles)</td><td>None</td></tr>
+        <tr><td><code>/serverinfo</code></td><td>Show server information</td><td>None</td></tr>
+        <tr><td><code>/membercount</code></td><td>Show the server's member count</td><td>None</td></tr>
+        <tr><td><code>/randomcolor</code></td><td>Generate a random color</td><td>None</td></tr>
+        <tr><td><code>/invite</code></td><td>Get the bot invite link</td><td>None</td></tr>
+        <tr><td><code>/prefix</code></td><td>Show the bot's command prefix</td><td>None</td></tr>
+        <tr><td><code>/emotes</code></td><td>List all custom emojis on the server</td><td>None</td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-afk" class="tab-content">
+<div class="card">
+    <h2>AFK</h2>
+    <table class="cmd-table">
+        <tr><td><code>/afk [message]</code></td><td>Mark yourself as AFK (notifies on mention)</td><td>None</td></tr>
+        <tr><td><code>/afk-list</code></td><td>List all currently AFK users</td><td>None</td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-roles" class="tab-content">
+<div class="card">
+    <h2>Self-Assignable Roles</h2>
+    <table class="cmd-table">
+        <tr><td><code>/addrank &lt;name&gt; &lt;role&gt;</code></td><td>Add a self-assignable rank</td><td><span class="perm">MANAGE_ROLES</span></td></tr>
+        <tr><td><code>/delrank &lt;name&gt;</code></td><td>Delete a self-assignable rank</td><td><span class="perm">MANAGE_ROLES</span></td></tr>
+        <tr><td><code>/rank &lt;name&gt;</code></td><td>Join or leave a rank (toggles on/off)</td><td>None</td></tr>
+        <tr><td><code>/ranks</code></td><td>List all available ranks</td><td>None</td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-manager" class="tab-content">
+<div class="card">
+    <h2>Manager</h2>
+    <table class="cmd-table">
+        <tr><td><code>/addmod &lt;role&gt;</code></td><td>Add a moderator role</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/delmod &lt;role&gt;</code></td><td>Remove a moderator role</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/listmods</code></td><td>List all moderator roles</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/nick &lt;user&gt; [nickname]</code></td><td>Change or reset a user's nickname</td><td><span class="perm">MANAGE_NICKNAMES</span></td></tr>
+        <tr><td><code>/addrole &lt;user&gt; &lt;role&gt;</code></td><td>Add a role to a user</td><td><span class="perm">MANAGE_ROLES</span></td></tr>
+        <tr><td><code>/delrole &lt;user&gt; &lt;role&gt;</code></td><td>Remove a role from a user</td><td><span class="perm">MANAGE_ROLES</span></td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-scheduling" class="tab-content">
+<div class="card">
+    <h2>Scheduling</h2>
+    <table class="cmd-table">
+        <tr><td><code>/tempban &lt;user&gt; &lt;minutes&gt; [reason]</code></td><td>Temporarily ban a user (auto-unban)</td><td><span class="perm">BAN_MEMBERS</span></td></tr>
+        <tr><td><code>/tempmute &lt;user&gt; &lt;minutes&gt; [reason]</code></td><td>Temporarily mute a user (max 28 days)</td><td><span class="perm">MODERATE_MEMBERS</span></td></tr>
+        <tr><td><code>/scheduled announce &lt;channel&gt; &lt;title&gt; &lt;msg&gt; &lt;datetime&gt; [interval]</code></td><td>Schedule a one-time or repeating announcement</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/scheduled list</code></td><td>List all pending scheduled actions</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/scheduled cancel &lt;id&gt;</code></td><td>Cancel a scheduled item</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-giveaways" class="tab-content">
+<div class="card">
+    <h2>Giveaways</h2>
+    <table class="cmd-table">
+        <tr><td><code>/giveaway create &lt;prize&gt; &lt;minutes&gt; [winners]</code></td><td>Start a giveaway with reaction entry</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/giveaway reroll &lt;message_id&gt; [count]</code></td><td>Pick new winner(s) from an ended giveaway</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/giveaway end &lt;message_id&gt;</code></td><td>Force-end a giveaway early</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-tickets" class="tab-content">
+<div class="card">
+    <h2>Tickets</h2>
+    <table class="cmd-table">
+        <tr><td><code>/ticket setup &lt;category_id&gt; [staff_role_id]</code></td><td>Set up the ticket panel in the current channel</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/ticket close</code></td><td>Close the current ticket channel</td><td>Creator or Staff</td></tr>
+        <tr><td><code>/ticket claim</code></td><td>Claim an open ticket</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+        <tr><td><code>/ticket add &lt;user&gt;</code></td><td>Add a user to the ticket</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+        <tr><td><code>/ticket remove &lt;user&gt;</code></td><td>Remove a user from the ticket</td><td><span class="perm">MANAGE_MESSAGES</span></td></tr>
+    </table>
+</div>
+</div>
+
+<div id="tab-xp" class="tab-content">
+<div class="card">
+    <h2>Leveling / XP</h2>
+    <table class="cmd-table">
+        <tr><td><code>/rank [user]</code></td><td>View your or another user's XP rank and level</td><td>None</td></tr>
+        <tr><td><code>/leaderboard</code></td><td>Show the server's XP leaderboard (top 10)</td><td>None</td></tr>
+        <tr><td><code>/xp set &lt;user&gt; &lt;amount&gt;</code></td><td>Set a user's XP (recalculates level)</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/xp add &lt;user&gt; &lt;amount&gt;</code></td><td>Add XP to a user</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+        <tr><td><code>/xp role &lt;level&gt; &lt;role&gt;</code></td><td>Assign a role reward at a given level</td><td><span class="perm">MANAGE_GUILD</span></td></tr>
+    </table>
+</div>
+</div>
