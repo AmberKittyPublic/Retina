@@ -1,1 +1,0 @@
-ALTER TABLE guild_configs ADD COLUMN xp_enabled INTEGER NOT NULL DEFAULT 0;
